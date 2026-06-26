@@ -1,0 +1,22 @@
+{
+  "name": "omni-endo-ai-mcp",
+  "version": "1.0.0",
+  "description": "MCP server exposing Glooko / Omnipod 5 diabetes data to an LLM for clinical audit.",
+  "type": "module",
+  "bin": {
+    "omni-endo-ai-mcp": "src/server.js"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "selftest": "node test/selftest.js",
+    "test": "node test/selftest.js && node test/resilience.test.js && node test/trend.test.js && node test/chart.test.js && node --no-warnings test/insulin.test.js && node --no-warnings test/extremes.test.js && node --no-warnings test/ranking.test.js && node --no-warnings test/units.test.js && node --no-warnings test/source_unit.test.js && node --no-warnings test/dayclass.test.js && node --no-warnings test/bolus_fields.test.js && node test/basal.test.js && node test/basal_orientation.test.js && node test/device.test.js && node test/dailyinsulin.test.js && node --no-warnings test/schema.test.js && node --no-warnings test/transport.test.js && node --no-warnings test/mcp-handshake.js && node --no-warnings test/sync.test.js && node --no-warnings test/coverage.test.js && node --no-warnings test/offline.test.js && node --no-warnings test/archive.test.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "fetch-cookie": "^3.1.0",
+    "node-fetch": "^3.3.2",
+    "tough-cookie": "^5.1.2",
+    "zod": "^3.25.0"
+  }
+}
