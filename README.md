@@ -181,7 +181,7 @@ The tool keeps its database in a folder called `data`, which sits at the same le
    Leave the `data` folder **completely empty**. The tool will download your own data into it from Glooko on the first run. (If you copied the example database in earlier to try it, delete `data/omni-endo.db` now, so your real data is not mixed with mine.)
 
 > [!NOTE]
-> The example data is my own real diabetes data, shared on purpose so people have something genuine to explore. Either way, your data lives in this `data` folder and stays on your machine.
+> The example data is my own real diabetes data, shared on purpose so people have something genuine to explore. Either way, the data lives in this `data` folder and stays on your machine.
 
 ---
 
