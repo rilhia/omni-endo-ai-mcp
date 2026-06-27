@@ -25,6 +25,7 @@
 * [How to Stop](#how-to-stop)
 * [Troubleshooting](#troubleshooting)
 * [Get in Touch](#get-in-touch)
+* [API Reference](#api-reference)
 * [How the Code is Organised](#how-the-code-is-organised)
 * [Disclaimer](#disclaimer)
 
@@ -580,3 +581,284 @@ A few invariants hold throughout: glucose is stored internally in one canonical 
 <a id="disclaimer"></a>
 ### Disclaimer
 *This tool is for informational and educational purposes only. It is not a medical device and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions regarding a medical condition. Any analysis produced with the help of this tool, including AI-generated suggestions, must be reviewed with a qualified clinical professional before making any changes to your insulin therapy or medical regimen.*
+
+---
+
+<a id="api-reference"></a>
+## 🔌 API Reference
+
+When running the Open WebUI stack (`docker compose up -d`), the full API is available at **http://localhost:8000** with an interactive Swagger UI at **http://localhost:8000/docs**.
+
+The Swagger UI lets you read every endpoint's description, see exactly what parameters it accepts, and try it live — useful for debugging, building integrations, or just understanding what the AI is actually calling on your behalf.
+
+### Authentication
+
+Every endpoint requires a Bearer token. This is the `OMNI_TOKEN` value from your `.env` file.
+
+In the Swagger UI, click **Authorize** at the top of the page and paste your token. In direct API calls, send it as an HTTP header:
+
+```
+Authorization: Bearer <your OMNI_TOKEN>
+```
+
+### A note on timestamps
+
+**All timestamps in this API are UTC ISO 8601**, identified by the trailing `Z`. This applies in both directions: parameters you send must be UTC, and all timestamps returned are UTC.
+
+If you are calling the API directly, convert your local times to UTC before sending them. For example, 9pm BST (UTC+1) is `2026-06-27T20:00:00.000Z`.
+
+### A note on glucose units
+
+Most endpoints accept optional `units`, `lower`, and `upper` parameters. If you omit them, the server uses the values you configured in `.env` (`OMNI_UNITS`, `OMNI_LOWER`, `OMNI_UPPER`). Only pass them if you want to override the defaults for a single call — for example, to check time below 3.5 mmol/L without changing your normal threshold.
+
+---
+
+### Endpoints
+
+All endpoints use `POST`. The request body is JSON.
+
+---
+
+#### `POST /get_diabetes_summary`
+
+The best starting point for any overview question. Returns fixed-size aggregates over any window, no matter how long, so it is cheap to call across months or years.
+
+**Tip:** call it with `start: "2000-01-01T00:00:00.000Z"` and `end` set to tomorrow to discover the full date range held in the database — the returned `reportRange.start` and `reportRange.end` are the first and last readings actually present.
+
+**Parameters**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `start` | string | Yes | Window start, UTC ISO 8601 |
+| `end` | string | Yes | Window end, UTC ISO 8601 |
+| `units` | string | No | `"mmol"` or `"mgdl"` — overrides server default for this call |
+| `lower` | number | No | Hypo boundary in the chosen unit — overrides server default |
+| `upper` | number | No | Hyper boundary in the chosen unit — overrides server default |
+
+**Returns**
+
+- `reportRange` — the actual data span present (`start`, `end`, `days`)
+- `glucoseControl` — average BG, GMI (estimated HbA1c), standard deviation, coefficient of variation, variability flag, time in range / time low / time high, CGM reading count
+- `glucoseExtremes` — highest and lowest readings, each with every timestamped instance
+- `bestWorst` — best and worst day and hour, each with TIR, median absolute target deviation, and CV so the ranking is explainable
+- `insulin` — bolus summed from individual events; basal from Glooko daily totals; basal/bolus percentages on a per-day-rate basis
+- `bolusArchitecture` — counts by bolus type (meal, manual correction, system correction, meal with correction)
+- `carbs` — total grams, grams per day, entry count
+- `settings` — the time-segmented pump profiles in force during the window
+
+---
+
+#### `POST /get_trend`
+
+Multi-period comparison. Splits a span into time buckets and computes each independently from raw readings — so a year by month gives you 12 correct rows in a single call, not averaged averages.
+
+**Parameters**
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `start` | string | Yes | | Window start, UTC ISO 8601 |
+| `end` | string | Yes | | Window end, UTC ISO 8601 |
+| `mode` | string | No | `"calendar"` | `"calendar"` for day/week/month/quarter buckets; `"fixed"` for equal-length buckets |
+| `granularity` | string | No | `"month"` | Calendar bucket size: `"day"`, `"week"`, `"month"`, or `"quarter"`. Only used when `mode` is `"calendar"` |
+| `fixedSizeDays` | integer | No | `7` | Bucket length in days. Only used when `mode` is `"fixed"` |
+| `units` | string | No | | Overrides server default for this call |
+| `lower` | number | No | | Overrides server default |
+| `upper` | number | No | | Overrides server default |
+
+**Returns**
+
+`bucketCount` and a `buckets` array. Each row contains: `bucket` (period key), `start`, `end`, `observedDays`; `glucose` (avg, TIR, time low, time high, stdDev, CV, GMI, reading count); `insulin` (bolus and basal figures); `carbs`; and `coverage` (reading count, expected count, coverage percent, and a `trustworthy` flag — treat buckets where this is false with caution).
+
+---
+
+#### `POST /get_glucose`
+
+Individual timestamped CGM readings for a window. Use `band` to filter to only the part of the range you care about — pulling only hypos is far cheaper than pulling everything.
+
+Capped to 21 days. For wider windows use `get_chart_series`; for aggregate stats use `get_diabetes_summary` or `get_trend`.
+
+**Parameters**
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `start` | string | Yes | | Window start, UTC ISO 8601 |
+| `end` | string | Yes | | Window end, UTC ISO 8601 |
+| `band` | string | No | `"all"` | `"low"` (hypos only), `"high"` (hypers only), `"target"` (in range only), `"all"` (every reading, tagged with its band) |
+| `units` | string | No | | Overrides server default |
+| `lower` | number | No | | Overrides server default |
+| `upper` | number | No | | Overrides server default |
+
+**Returns**
+
+`window`, `thresholdsUsed` (lower, upper, unit), `band`, `count`, and a `readings` array — each reading has `time` (UTC), `value`, `velocity` (rate of change), and `band` when `band="all"`.
+
+---
+
+#### `POST /get_chart_series`
+
+Glucose downsampled to a target number of points for plotting, with a min/max band per point so spikes are not lost. Also returns bolus events as overlay markers.
+
+Use this whenever you want to draw a chart. It is far cheaper than `get_glucose` for wide windows, and a chart cannot usefully display more points than its pixel width anyway.
+
+**Parameters**
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `start` | string | Yes | | Window start, UTC ISO 8601 |
+| `end` | string | Yes | | Window end, UTC ISO 8601 |
+| `maxPoints` | integer | No | `250` | Target number of plotted points (20–1000). 200–400 is sufficient for most screen widths |
+
+**Returns**
+
+`unit`, a `points` array (`t`, `avg`, `min`, `max`, `n` per point), and an `events` array of bolus markers for overlay.
+
+---
+
+#### `POST /get_enriched_bolus_log`
+
+Every bolus in the window, enriched with the CGM value at the moment of delivery and the pump settings (ISF, carb ratio, target, DIA) that were active at that time.
+
+Each record also includes delivered vs programmed units (if `delivered < programmed` the bolus was interrupted, flagged `interrupted: true`), the calculator recommendation split into correction and carb components, whether the user overrode it, and the bolus class.
+
+Capped to 92 days per call.
+
+**Parameters**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `start` | string | Yes | Window start, UTC ISO 8601 |
+| `end` | string | Yes | Window end, UTC ISO 8601 |
+| `classes` | array of strings | No | Filter to specific bolus types. Valid values: `"Meal Bolus"`, `"Manual Correction Bolus"`, `"System Correction Bolus"`, `"Meal With Correction Bolus"`. Omit to return all classes |
+
+**Returns**
+
+`count`, `filterApplied`, and a `boluses` array. Each record: `time`, `units`, `delivered`, `programmed`, `interrupted`, `recCorrection`, `recCarbs`, `recTotal`, `override` (`"above"` / `"below"` / null), `bgInput`, `bgSource`, `cgm_val`, `class`, `isManual`, and a `context` object with the settings in force at delivery.
+
+---
+
+#### `POST /get_hourly_trends`
+
+Time in range and average glucose pooled by clock-hour across the entire window. Every reading that fell in the 07:00 hour on any day is combined into one 07:00 row — useful for identifying recurring time-of-day patterns such as the dawn phenomenon or consistent evening highs.
+
+Hours are returned as UTC clock-hours. Convert to your local time when interpreting results.
+
+**Parameters**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `start` | string | Yes | Window start, UTC ISO 8601 |
+| `end` | string | Yes | Window end, UTC ISO 8601 |
+| `units` | string | No | Overrides server default |
+| `lower` | number | No | Overrides server default |
+| `upper` | number | No | Overrides server default |
+
+**Returns**
+
+A `byHour` array of up to 24 rows, each with `hour` (UTC, `"HH:00"`), `averageBG`, `timeInRange`, `timeLow`, `timeHigh`, and `readings` (count for that hour).
+
+---
+
+#### `POST /get_basal_delivery`
+
+What the Omnipod 5 algorithm was doing with basal delivery over time, expressed as states rather than units.
+
+> **Important:** these are behavioural states, not insulin amounts. `suspend` means basal was paused; `max` means it was running at its ceiling. Neither is a unit figure. For basal units, use `get_daily_insulin`.
+
+| State | Meaning |
+|-------|---------|
+| `normal` | Ordinary automated delivery |
+| `suspend` | Algorithm paused basal, typically to prevent a predicted low |
+| `max` | Algorithm delivering at its ceiling, typically fighting a rise |
+| `limited` | CGM signal lost for more than 20 minutes; algorithm ran a fixed preset and was not adjusting |
+
+**Parameters**
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `start` | string | Yes | | Window start, UTC ISO 8601 |
+| `end` | string | Yes | | Window end, UTC ISO 8601 |
+| `includeIntervals` | boolean | No | `true` | Set to `false` to return only the per-state summary totals without the full interval timeline — much smaller over long spans |
+
+**Returns**
+
+A `summary` with minutes and percentage per state, and (unless `includeIntervals` is false) an `intervals` array with `state`, `start`, `end`, and `minutes` for each contiguous period.
+
+---
+
+#### `POST /get_daily_insulin`
+
+Glooko's own per-day insulin totals: basal units, bolus units, and combined total for each day, plus a window aggregate.
+
+Use this when you want a day-by-day table of insulin delivery or total daily dose figures. Note that the bolus figure here is Glooko's pre-aggregated daily total; for bolus summed from individual events (the method used everywhere else in this API), use `get_diabetes_summary` or `get_trend`.
+
+The most recent day may be flagged `provisional` if it has not yet been finalised.
+
+**Parameters**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `start` | string | Yes | Window start, UTC ISO 8601 |
+| `end` | string | Yes | Window end, UTC ISO 8601 |
+
+**Returns**
+
+`source` (`"glooko-daily"`), a `days` array (`date`, `basalUnits`, `bolusUnits`, `totalUnits`, `provisional`), and an `aggregate` (`daysWithData`, `basalUnits`, `bolusUnits`, `totalUnits`, per-day averages, `basalPercent`). All dates are UTC days.
+
+---
+
+#### `POST /get_settings_history`
+
+Every Omnipod 5 setting change that was in effect during the window, in chronological order: DIA, max basal rate, and the time-segmented target, ISF, and carb-ratio profiles.
+
+Useful for establishing which settings were active at a specific point in time before judging a bolus or an excursion, or for reviewing how settings have been adjusted over a long span.
+
+Glucose-based values (target, ISF) are returned in the configured unit. Per-segment `from` times are pump-schedule clock-hours, not UTC timestamps.
+
+**Parameters**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `start` | string | Yes | Window start, UTC ISO 8601 |
+| `end` | string | Yes | Window end, UTC ISO 8601 |
+
+**Returns**
+
+A `settings` array. Each entry has `effective` (UTC timestamp when this setting took effect), `DIA_hours`, `maxBasalRate`, and three time-segmented profiles — `targetBg`, `isf`, and `carbRatio` — each a list of `{from, value}` segments.
+
+---
+
+#### `POST /get_device_events`
+
+Pod changes and CGM sensor changes as timestamped events, in two separate lists.
+
+These are point-in-time markers, not amounts. They are most useful as context for nearby glucose disruption: a fresh pod can run high for the first hours while the cannula settles, and a new sensor can read erratically during warm-up. Treat any correlation as a possible contributing factor — never assert it as a confirmed cause.
+
+**Parameters**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `start` | string | Yes | Window start, UTC ISO 8601 |
+| `end` | string | Yes | Window end, UTC ISO 8601 |
+
+**Returns**
+
+`podChanges` and `sensorChanges` arrays of UTC timestamps, plus a count for each.
+
+---
+
+#### `POST /get_meal_window_analysis`
+
+A focused look around a single bolus or meal event: 30 minutes before to 3 hours after the timestamp you pass.
+
+Use it to judge a post-meal glucose excursion and assess how well a dose worked, without pulling whole days of data. Locate the event time first (for example from `get_enriched_bolus_log`), then pass it here.
+
+**Parameters**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `eventTimestamp` | string | Yes | UTC ISO 8601 timestamp of the meal or bolus event |
+| `units` | string | No | Overrides server default for this call |
+
+**Returns**
+
+`targetEvent` (the timestamp you passed), `unit`, a `glucoseTimeline` array (`time`, `value`) across the 3.5-hour window, and an `associatedBoluses` array of enriched bolus records that fall within the window.
