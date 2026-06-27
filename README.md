@@ -76,7 +76,7 @@ This project is built for people who use the **Omnipod 5** closed-loop insulin d
 **Required by everyone**
 - **Docker** — the entire stack runs inside Docker. Install it from [docker.com](https://www.docker.com/get-started). See [Step 1](#step-1-installing-docker) below.
 
-**Required if you want to analyse your own data**
+**Required to analyse your own data**
 - **An Omnipod 5** — the insulin delivery device whose data this project analyses.
 - **A Glooko account** — with your Omnipod 5 synced to it. This is how the MCP server retrieves your data.
 
