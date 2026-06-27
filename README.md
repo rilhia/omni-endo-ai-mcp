@@ -142,22 +142,110 @@ Inside, you should see:
 The tool reads its settings from a file called `.env`. The repository includes a template called `.env.example`, you make your own copy and fill it in.
 
 1. **Copy the template:** Make a copy of `.env.example` and rename the copy to exactly `.env` (just `.env`, nothing before the dot).
-2. **Open `.env`** in any text editor and set the following.
+2. **Open `.env`** in any text editor and edit it for one of the two scenarios below.
 
-**To use your own Glooko data, fill these in:**
-* `GLOOKO_EMAIL` and `GLOOKO_PASSWORD`, your normal Glooko login. (Sent only to Glooko, never anywhere else.)
-* `GLOOKO_GLUCOSE_UNIT`, the unit your **Glooko account** is set to: `mmol` or `mgdl`. This tells the tool how to read your incoming data correctly, so it matters. (This is separate from how you want to *view* it.)
+### Scenario 1: Just trying it with the example data (no Glooko login)
+This is the easiest way to start, and it never contacts Glooko.
 
-**To just explore the example data instead, leave the Glooko fields blank.** With no credentials, the tool never contacts Glooko and simply serves the example database (see the next section).
+* `GLOOKO_EMAIL` and `GLOOKO_PASSWORD`: **leave both blank.** Blank credentials put the tool in offline mode, so it only ever reads the example database.
+* `GLOOKO_GLUCOSE_UNIT`: set to `mmol`. The example data is mine, and I am British, so it is recorded in mmol/L.
+* `OMNI_TOKEN`: set any hard-to-guess phrase (only needed for the Open WebUI path).
+* The display settings (`OMNI_UNITS`, `OMNI_LOWER`, `OMNI_UPPER`) can be left at their mmol defaults to view it the way I do.
 
-**These control how you want to *see* your data (optional):**
-* `OMNI_UNITS`, your preferred display unit: `mmol` (default) or `mgdl`.
-* `OMNI_LOWER` / `OMNI_UPPER`, your target range boundaries, in the unit above (e.g. `3.9` and `10.0` for mmol, or `70` and `180` for mgdl).
+The example `.env` below is ready to use for a test against the provided data. Copy it as-is (just change `OMNI_TOKEN`):
 
-**One security setting:**
-* `OMNI_TOKEN`, a password that protects the local network endpoints (used by Open WebUI). Set it to any long random string of letters and numbers. On Mac/Linux you can generate one with `openssl rand -hex 16`.
+```bash
+# ============================================================================
+#  Omni-Endo AI: configuration
+# ============================================================================
+#  Copy this file to ".env" (same folder) and fill in the two REQUIRED values
+#  below. Everything else has sensible defaults you can leave alone.
+#
+#  Docker reads this file literally: do NOT put quotes around values, and a
+#  line starting with "#" is a comment.
+# ============================================================================
 
-Leave anything else at its default.
+# --- Glooko login (OPTIONAL) ------------------------------------------------
+#  Your Glooko email and password let the server download YOUR data and keep it
+#  up to date. They stay on your machine and are never shared.
+#
+#  LEAVE THESE BLANK to run in OFFLINE mode: the server will NEVER contact
+#  Glooko and will serve only the data already in its database (for example, a
+#  sample database shipped with the project). This is the safe way to explore
+#  with example data, or to run against a database you have already built.
+#
+#  Fill them in to download and refresh your own data.
+GLOOKO_EMAIL=
+GLOOKO_PASSWORD=
+
+# --- IMPORTANT if you provide a Glooko login: your Glooko account's unit ------
+#  Glooko sends your data in whatever glucose unit your Glooko ACCOUNT is set to
+#  (often mg/dL for US accounts, mmol/L elsewhere). Set this to match your Glooko
+#  account so the data is interpreted correctly as it is downloaded. Getting this
+#  wrong corrupts the stored data (e.g. a 162 mg/dL reading stored as 162 mmol/L).
+#
+#  This is SEPARATE from OMNI_UNITS below: this one is how your data ARRIVES from
+#  Glooko; OMNI_UNITS is how you want to SEE it. They can differ (e.g. a US user
+#  whose Glooko is mg/dL could still choose to view everything in mmol/L).
+#
+#  Values: "mmol" (mmol/L, default) or "mgdl" (mg/dL). Only matters when you have
+#  a Glooko login; ignored in offline mode.
+GLOOKO_GLUCOSE_UNIT=mmol
+
+# --- REQUIRED: a secret token ----------------------------------------------
+#  Any hard-to-guess phrase. It protects the data endpoint so only you (and the
+#  tools on your own machine) can reach it. Change it from the default below.
+#  To generate a strong one, run:  openssl rand -hex 16
+OMNI_TOKEN=change-me-to-a-secret
+
+# --- OPTIONAL: your preferred glucose unit and target range ----------------
+#  Set these once to your preference and every tool uses them by default, so you
+#  never have to specify them per question. You (or the AI) can still override
+#  them for a one-off query without changing this file.
+#
+#  OMNI_UNITS:  "mmol" (mmol/L, default) or "mgdl" (mg/dL).
+#  OMNI_LOWER:  low/hypo boundary, IN THE UNIT ABOVE. Readings below = time-low.
+#  OMNI_UPPER:  high/hyper boundary, IN THE UNIT ABOVE. Readings above = time-high.
+#
+#  IMPORTANT: the boundaries must be in the same unit as OMNI_UNITS. For mmol the
+#  usual range is 3.9 to 10.0; for mgdl it is 70 to 180. If you leave these blank
+#  the defaults are 3.9/10.0 for mmol or 70/180 for mgdl.
+OMNI_UNITS=mmol
+OMNI_LOWER=3.9
+OMNI_UPPER=10.0
+
+# --- OPTIONAL: how far back to load on first run ---------------------------
+#  Only used when you HAVE provided a Glooko login above. On first use the
+#  server downloads your history from this date to now. If you leave it blank,
+#  it defaults to 3 MONTHS before today, which is fast and is the amount in the
+#  example database. Set an earlier date to capture more history.
+#  Format: YYYY-MM-DD.
+OMNI_OLDEST_DATE=
+
+# ============================================================================
+#  Advanced (most people never change these)
+# ============================================================================
+#  Ports exposed on your machine. Change only if something else already uses
+#  them. Format is HOST:CONTAINER inside docker-compose.yml.
+#    Data server (MCP/SSE/API):  3033
+#    API explorer + Ollama API:  8000
+#    Open WebUI (chat with Ollama): 8083
+```
+
+### Scenario 2: Using your own Glooko data
+To connect your own account and download your own history:
+
+1. **Create a `data` folder** at the same level as the `src` folder, and make sure it is **empty** (this is where your downloaded data will be stored). If you previously copied the example database in to try Scenario 1, remove it first so your data is not mixed with mine.
+2. **Add your Glooko login:** set `GLOOKO_EMAIL` and `GLOOKO_PASSWORD` to your normal Glooko credentials.
+3. **Set the remaining values to match you:**
+   * `GLOOKO_GLUCOSE_UNIT`, the unit your **Glooko account** is set to (`mmol` or `mgdl`). Get this right, it is how your data is read as it downloads.
+   * `OMNI_TOKEN`, your secret token (any hard-to-guess phrase).
+   * `OMNI_UNITS`, how you want to **see** your data (`mmol` or `mgdl`).
+   * `OMNI_LOWER` / `OMNI_UPPER`, your target range, in the unit you chose for `OMNI_UNITS`.
+   * `OMNI_OLDEST_DATE` (optional), how far back to load on the first run; blank means the last 3 months.
+
+> [!IMPORTANT]
+> `GLOOKO_GLUCOSE_UNIT` (how your data **arrives** from Glooko) and `OMNI_UNITS` (how you want to **see** it) are different settings. They can be the same, but they do not have to be.
 
 ---
 
@@ -212,7 +300,7 @@ Claude Desktop is configured by a file called `claude_desktop_config.json`.
 The easiest way to open it: in Claude Desktop go to **Settings → Developer → Edit Config**. That opens the right file for you.
 
 ### A2. Add the omni-endo server
-Add an `mcpServers` entry like the one below. If the file already has an `mcpServers` section, add the `"omni-endo"` block inside it.
+Add an `mcpServers` entry to the file. The block below is an **example using my own folder paths**, it will not work as-is on your machine, because the two paths point at where the project lives on *my* computer. Use it as a template and change those two paths to match *your* setup.
 
 ```json
 {
@@ -234,14 +322,24 @@ Add an `mcpServers` entry like the one below. If the file already has an `mcpSer
 }
 ```
 
-**You must change the two paths** to point at *your* project folder:
-* The `--env-file` path must point to your `.env` file.
-* The `-v` path before `:/data` must point to your `data` folder (the part after the colon, `/data`, stays exactly as it is).
+If the file already has an `mcpServers` section, add just the `"omni-endo"` block inside it rather than pasting the whole thing.
+
+**How this relates to your setup, change these two paths:**
+
+Both paths above start with my project folder, `/Users/richard/Development/Docker/agents/omni-endo-mcp`. Yours will be wherever you moved the extracted folder in Step 2. Replace my path with yours in both places:
+
+* **The `--env-file` line** must point to your `.env` file. So it becomes `<your project folder>/.env`. For example, if your project is at `/Users/jane/Desktop/omni-endo-mcp`, this line is `/Users/jane/Desktop/omni-endo-mcp/.env`.
+* **The `-v` line** must point to your `data` folder, followed by `:/data`. So it becomes `<your project folder>/data:/data`. For the same example: `/Users/jane/Desktop/omni-endo-mcp/data:/data`. The part **after** the colon (`/data`) is the path *inside* the container and must be left exactly as it is, only change the part before the colon.
+
+The last line, `omni-endo-ai-mcp`, is the name of the Docker image you built in Step 4, and stays the same for everyone.
 
 What this does, in plain terms: it tells Claude to run the `omni-endo-ai-mcp` image, hand it your settings (`--env-file`), and share your data folder with it (`-v ... :/data`) so it can read your database.
 
+> [!TIP]
+> Easiest way to get your exact path: in a terminal, `cd` into your project folder and run `pwd` (Mac) or `cd` with no arguments (Windows shows the path). Copy what it prints and use it in both lines above.
+
 > [!NOTE]
-> Use the full path. On Mac it will start with `/Users/yourname/...`; on Windows it will look like `C:\\Users\\YourName\\...` (note the double backslashes in JSON).
+> Always use the full path. On Mac it starts with `/Users/yourname/...`; on Windows it looks like `C:\\Users\\YourName\\...` (note the double backslashes, which JSON requires).
 
 ### A3. Restart Claude Desktop
 Fully quit Claude Desktop (on Mac, Cmd + Q, not just closing the window) and open it again, so it picks up the new config.
