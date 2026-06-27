@@ -1,146 +1,184 @@
-# Omni-Endo AI
+<div align="center">
+  <kbd><img src="docs/images/Omni-Endo-AI-MCP.png" alt="Omni-Endo AI Header" width="100%"></kbd>
+</div>
 
-Turn your Glooko / Omnipod 5 diabetes data into something an AI can analyse for
-you. One install gives you three ways to use it:
-
-1. **With Claude Desktop** (recommended, simplest, most capable).
-2. **As a chat assistant** using a local Ollama model.
-3. **As a plain API** you can call yourself or explore in your browser.
-
-All three run from a single setup. You do not need to understand Docker deeply.
-Follow the steps in order.
+# OMNI-ENDO AI (MCP)
+**Clinical Audit & Triage Tool: connect your diabetes data directly to an AI assistant**
 
 ---
 
-## What you need first
+## 🌟 What is Omni-Endo AI?
+**Omni-Endo AI** is a bridge between your diabetes data and an AI assistant. It is an **MCP server** (Model Context Protocol), which is a standard way of giving an AI a set of tools it can use on your behalf.
 
-- **Docker Desktop** installed and running. (Search "install Docker Desktop"
-  for your operating system, install it, and open it once so it is running.)
-- Your **Glooko login** (optional). With it, the server downloads and refreshes
-  your own data. Without it, the server runs in offline mode and uses whatever
-  data is already in its database (for example, the sample database shipped with
-  the project), never contacting Glooko.
-- About 10 minutes.
+Instead of copying and pasting reports, you simply *talk* to your assistant. You ask a question in plain language, and the assistant reaches into your data, pulls exactly what it needs, and analyses it for you, all within the conversation.
 
-That is everything. You do not need Node, databases, or any coding tools; they
-all run inside Docker.
+You ask things like:
+* *"How was my time in range last month?"*
+* *"Why do I keep going high in the evenings?"*
+* *"Show me my worst day and tell me what happened."*
 
----
+### 🚀 What does it actually do?
+Omni-Endo AI exposes your diabetes history as a set of analytical tools the AI can call:
 
-## Step 1: Get the files and set your details
+* **Summaries and trends:** time in range, GMI, variability, best and worst days and hours, basal/bolus balance, over any period you ask about.
+* **High-fidelity CGM data:** every 5-minute reading is captured, so no spike or dip is missed, but the AI is guided to pull *aggregates first* and only fetch raw readings when it genuinely needs them.
+* **Enriched bolus analysis:** each bolus is matched with the glucose at the time and the pump settings (ISF, carb ratio, target) that were active, so the AI can judge whether a dose made sense.
+* **Omnipod 5 behaviour:** when the algorithm was suspending, running at max, or running blind after losing signal.
 
-1. Download / clone this folder to your computer.
-2. In the folder, find the file called `.env.example`. Make a copy of it and
-   name the copy `.env` (just `.env`, nothing before the dot).
-3. Open `.env` in any text editor and fill in:
-   - `OMNI_TOKEN` — any hard-to-guess phrase. This is a password that protects
-     your data endpoints. To make a strong one, run `openssl rand -hex 16`, or
-     type a long random string of letters and numbers (letters and numbers
-     only, avoid quotes and spaces).
-   - `GLOOKO_EMAIL` and `GLOOKO_PASSWORD` — your Glooko login, IF you want the
-     server to download and refresh your own data. Leave them blank to run in
-     offline mode against the database the project ships with.
-   - `GLOOKO_GLUCOSE_UNIT` — only if you provided a login: set this to the unit
-     your Glooko account uses (`mmol` or `mgdl`) so your data is read correctly
-     as it downloads. This is separate from how you choose to view it below.
+The assistant does all of this itself, live, by calling these tools while it talks to you.
 
-   Leave everything else as it is.
+### The "Aha!" Moment
+This project started with a personal frustration. While trying to integrate my diabetes data into a **Home Assistant** dashboard, I discovered that the wealth of historical data stored in **Glooko** (especially from the **Omnipod 5**) is a goldmine. I realised that if I gave that data to an AI assistant and let it query the data directly, it could uncover patterns that months of manual logging never showed.
 
-That is the only file you ever need to edit.
+### Why I Built This
+I built this to put the power back into the hands of the patient. We often only get 15 minutes with a consultant every few months. This tool lets you:
+1. **Be Proactive:** spot trends before your next appointment.
+2. **Be Private:** your data and credentials stay on your own machine.
+3. **Be Flexible:** use it with Claude Desktop, or with a local AI through Open WebUI.
 
 ---
 
-## Step 2: Start everything
+## 🔒 Privacy & Security: Your Data, Your Control
+Because this involves sensitive medical credentials and data, it is designed with a **"local-first" architecture**.
 
-Open a terminal **in this folder** and run:
+* **No Middle Man:** your Glooko username and password never leave your machine. They are sent directly from your local Docker container to Glooko's servers. No third-party server ever sees them.
+* **It runs on your computer:** the server, the database, and the analysis tools all run locally in Docker.
+* **You choose the AI:** connect it to Claude Desktop, or to a local model through Open WebUI. With a local model, your data never leaves your machine at all.
 
-```
-docker compose up -d --build
-```
+> [!IMPORTANT]
+> If you use a cloud AI assistant, most providers have a setting that allows them to "train" on your conversations. Before discussing your clinical data, consider turning off chat history / model training in that assistant's privacy settings, so your medical history stays private.
 
-The first time, this builds the data server and downloads the other pieces, so
-it may take a few minutes. When it finishes, the stack is running in the
-background. The very first question you ask will take a little longer because
-the server downloads your Glooko history then; after that it is fast.
-
-To check it is alive:
-
-```
-docker compose logs omni-endo
-```
-
-You should see a line like `MCP server running on http://0.0.0.0:3033/mcp`.
-
-To stop everything later: `docker compose down`. To start it again:
-`docker compose up -d` (no `--build` needed after the first time).
+> [!TIP]
+> Want to try it before connecting your own account? This repository ships with a small **example database** of real data so you can explore everything offline, with no Glooko login at all. See **"Try it with the example data"** below.
 
 ---
 
-## Option A: Use it as an API (and explore the tools)
+## 🧐 The "Tough Love" AI Persona
+The tool ships with a built-in AI persona: a **"Tough Love" Endocrinologist**.
 
-This works the moment the stack is running. Open your browser to:
+Managing Type 1 Diabetes is hard, and placating a user doesn't improve Time in Range. The persona is direct, analytical, and uncompromising. It won't sugar-coat the data; it will tell you where your bolus timing is off, where you are over-correcting, or where your basal is failing to catch a drift. It is also built to work *efficiently*, pulling summaries first and only drilling into granular data when it needs to.
 
-```
-http://localhost:8000/docs
-```
-
-You will see every tool listed with a "Try it out" button. To actually run a
-tool you will be asked for the API key — that is your `OMNI_TOKEN` from `.env`.
-
-To call it from a script or the command line instead, for example:
-
-```
-curl -X POST http://localhost:8000/get_diabetes_summary \
-  -H "Authorization: Bearer YOUR_OMNI_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"start":"2026-06-01T00:00:00.000Z","end":"2026-06-08T00:00:00.000Z"}'
-```
-
-Replace `YOUR_OMNI_TOKEN` with the token you set in `.env`.
-
-**All times are UTC.** Every timestamp you send (start, end, event times) must be
-in UTC ISO 8601 (the trailing `Z`, e.g. `2026-06-01T00:00:00.000Z`), and every
-timestamp the API returns is UTC. If you think in local time, convert to UTC
-before calling and convert the results back afterwards. Hour-of-day figures
-(such as "worst hour") are UTC clock-hours.
+When you connect the tool, this persona is available as a selectable prompt called **"Clinical auditor persona"**. Selecting it is what turns the AI into the endocrinologist.
 
 ---
 
-## Option B: Use it with a local Ollama model (chat)
+> [!WARNING]
+> Be aware that links in this document may take you away from this page. To open in a new tab, right-click and select **Open Link in New Tab**.
 
-This lets a local AI model chat with you and pull your diabetes data when
-relevant. You need [Ollama](https://ollama.com) installed and running on your
-computer, with a model that supports tools (for example `qwen2.5`).
+## 🛠️ Step 1: Getting Ready (Installing Docker)
+To run this tool we use **Docker**. Think of Docker as a "shipping container" for software: it lets Omni-Endo AI run perfectly on your computer without you installing complicated code libraries by hand.
 
-1. Open Open WebUI in your browser:
+This may require a restart, so make sure you are ready for that before starting.
 
+### **For Windows Users**
+1. **Download:** Go to the [Docker installation instructions for Windows](https://docs.docker.com/desktop/setup/install/windows-install/), read the options, and download the one that suits your machine. For most users this is **Docker Desktop for Windows - x86_64**.
+2. **Install:** Run the `.exe`. **Important:** during installation, ensure **"Use WSL 2 instead of Hyper-V"** is checked.
+3. **Restart:** Your computer will likely ask to restart.
+4. **Start:** Open "Docker Desktop" from the Start Menu and accept the terms.
+
+> [!WARNING]
+> If you see a WSL version issue, see [this guide](https://docs.docker.com/desktop/setup/install/windows-install/#option-1-install-or-update-wsl-via-the-terminal) to resolve it.
+
+### **For Mac Users**
+1. **Download:** Go to the [Docker installation instructions for Mac](https://docs.docker.com/desktop/setup/install/mac-install/).
+   - Choose **"Apple Chip"** for a newer Mac (M1, M2, M3, M4).
+   - Choose **"Intel Chip"** for an older Mac.
+2. **Install:** Open the `.dmg` and drag Docker into your **Applications** folder.
+3. **Start:** Open Docker from Applications. You may need to enter your Mac password to grant permission.
+
+> [!NOTE]
+> Make sure Docker Desktop is actually *running* (you'll see its whale icon in your menu bar or system tray) before continuing.
+
+---
+
+## 📂 Step 2: Getting the Files
+1. **Download the Code:** On [this GitHub page](https://github.com/rilhia/omni-endo-ai-mcp), click the green **"<> Code"** button, then **"Download ZIP"**.
+2. **Extract:** Open your Downloads folder, right-click the zip, and choose **"Extract All"**.
+3. **Move:** Move the extracted folder somewhere easy to find and remember, this location matters for the steps below. For example:
+   `/Users/richard/Development/Docker/agents/omni-endo-mcp`
+
+Inside, you should see:
+* `src/` (the application code)
+* `examples/` (the example database)
+* `docker-compose.yml`
+* `Dockerfile`
+* `.env.example`
+* ...and a few other small files.
+
+---
+
+## ⚙️ Step 3: Configure Your Settings (`.env`)
+The tool reads its settings from a file called `.env`. The repository includes a template called `.env.example`, you make your own copy and fill it in.
+
+1. **Copy the template:** Make a copy of `.env.example` and rename the copy to exactly `.env` (just `.env`, nothing before the dot).
+2. **Open `.env`** in any text editor and set the following.
+
+**To use your own Glooko data, fill these in:**
+* `GLOOKO_EMAIL` and `GLOOKO_PASSWORD`, your normal Glooko login. (Sent only to Glooko, never anywhere else.)
+* `GLOOKO_GLUCOSE_UNIT`, the unit your **Glooko account** is set to: `mmol` or `mgdl`. This tells the tool how to read your incoming data correctly, so it matters. (This is separate from how you want to *view* it.)
+
+**To just explore the example data instead, leave the Glooko fields blank.** With no credentials, the tool never contacts Glooko and simply serves the example database (see the next section).
+
+**These control how you want to *see* your data (optional):**
+* `OMNI_UNITS`, your preferred display unit: `mmol` (default) or `mgdl`.
+* `OMNI_LOWER` / `OMNI_UPPER`, your target range boundaries, in the unit above (e.g. `3.9` and `10.0` for mmol, or `70` and `180` for mgdl).
+
+**One security setting:**
+* `OMNI_TOKEN`, a password that protects the local network endpoints (used by Open WebUI). Set it to any long random string of letters and numbers. On Mac/Linux you can generate one with `openssl rand -hex 16`.
+
+Leave anything else at its default.
+
+---
+
+## 🧪 Try it with the example data (optional, no login needed)
+This repo ships with a real example database so you can try everything before connecting your own account.
+
+1. In the project folder, **create a folder called `data`** if it isn't already there.
+2. **Copy** the file `examples/omni-endo.db` **into** that `data` folder.
+3. Make sure your `.env` has the **Glooko fields left blank** (this puts the tool in offline mode, so it will only ever read the example database and will never try to download anything).
+
+That's it, when you run the tool and connect your AI, it will analyse the example data exactly as if it were your own.
+
+> [!NOTE]
+> The example data is my own real diabetes data, shared on purpose so people have something genuine to explore. When you later switch to your own account, your data lives in the same `data` folder and stays on your machine.
+
+---
+
+## ▶️ Step 4: Build the Tool
+Now we build the Docker image that both Claude and Open WebUI will use.
+
+1. **Open a Terminal:**
+   - **Windows:** open "PowerShell" from the Start Menu.
+   - **Mac:** open "Terminal" (Cmd + Space, type Terminal).
+2. **Go to the folder:** type `cd` then a space, then drag your project folder into the terminal window so the path fills in, and press Enter. For example:
+   `cd /Users/richard/Development/Docker/agents/omni-endo-mcp`
+3. **Build it:** run this command and press Enter:
+   ```bash
+   docker compose build --no-cache
    ```
-   http://localhost:8083
-   ```
+   The first time, Docker downloads what it needs and builds the image; this can take a few minutes.
 
-2. Create the local account it asks for (it stays on your machine).
-3. Connect the data tools: go to **Settings → Tools** (or **Admin Settings →
-   External Tools**, depending on your version) and add a tool server:
-   - URL: `http://mcpo:8000`
-   - API key / Bearer token: your `OMNI_TOKEN`.
-4. Start a chat, pick a tools-capable model (e.g. `qwen2.5`), make sure the
-   tool is enabled for the chat, and ask something like "how was my time in
-   range last week?"
+> [!IMPORTANT]
+> If you ever download a newer version of this tool, always rebuild with `docker compose build --no-cache`. A plain start can reuse an old cached image and run outdated code.
 
-Note: local models vary a lot in how well they use tools. If a model ignores
-the data, try `qwen2.5`; smaller models are less reliable at this.
+You now have everything built. There are two ways to use it: **Claude Desktop** (Section A) or **Open WebUI with a local model** (Section B). You can set up either or both.
 
 ---
 
-## Option C: Use it with Claude Desktop (recommended)
+## 🅰️ Section A: Use it with Claude Desktop
 
-Claude talks to the data server directly, in its own simple way. You do **not**
-need the API or Ollama pieces for this; Claude launches its own copy of the
-server on demand.
+With Claude Desktop, Claude launches its own copy of the tool on demand and reads your data directly. You do **not** need to keep anything running in the terminal for this, Claude starts and stops the container itself.
 
-In Claude Desktop, open **Settings → Developer → Edit Config** (this opens a
-file called `claude_desktop_config.json`) and add an entry like this, then
-restart Claude:
+### A1. Find your Claude config file
+Claude Desktop is configured by a file called `claude_desktop_config.json`.
+
+* **Mac:** `/Users/<yourname>/Library/Application Support/Claude/claude_desktop_config.json`
+* **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+The easiest way to open it: in Claude Desktop go to **Settings → Developer → Edit Config**. That opens the right file for you.
+
+### A2. Add the omni-endo server
+Add an `mcpServers` entry like the one below. If the file already has an `mcpServers` section, add the `"omni-endo"` block inside it.
 
 ```json
 {
@@ -148,99 +186,162 @@ restart Claude:
     "omni-endo": {
       "command": "docker",
       "args": [
-        "run", "--rm", "-i",
-        "--env-file", "/full/path/to/this/folder/.env",
-        "-v", "/full/path/to/this/folder/data:/data",
-        "omni-endo-ai-mcp:latest"
+        "run",
+        "-i",
+        "--rm",
+        "--env-file",
+        "/Users/richard/Development/Docker/agents/omni-endo-mcp/.env",
+        "-v",
+        "/Users/richard/Development/Docker/agents/omni-endo-mcp/data:/data",
+        "omni-endo-ai-mcp"
       ]
     }
   }
 }
 ```
 
-Replace `/full/path/to/this/folder` with the real path to this folder on your
-computer. This uses the same image and the same data the stack already built,
-so your history is shared. Claude runs its own short-lived copy each time, which
-does not interfere with the API/Ollama stack running in the background.
+**You must change the two paths** to point at *your* project folder:
+* The `--env-file` path must point to your `.env` file.
+* The `-v` path before `:/data` must point to your `data` folder (the part after the colon, `/data`, stays exactly as it is).
 
-(Claude needs the server in "stdio" mode, which is the image's default, so no
-extra setting is required for this to work. The background stack overrides it to
-network mode only for its own copy.)
+What this does, in plain terms: it tells Claude to run the `omni-endo-ai-mcp` image, hand it your settings (`--env-file`), and share your data folder with it (`-v ... :/data`) so it can read your database.
+
+> [!NOTE]
+> Use the full path. On Mac it will start with `/Users/yourname/...`; on Windows it will look like `C:\\Users\\YourName\\...` (note the double backslashes in JSON).
+
+### A3. Restart Claude Desktop
+Fully quit Claude Desktop (on Mac, Cmd + Q, not just closing the window) and open it again, so it picks up the new config.
+
+### A4. Make sure the tools are loaded
+In a chat, open the connector / tools menu. You should see **omni-endo** with its tools.
+
+> [!IMPORTANT]
+> Claude Desktop has a setting for how it loads tools. If it is set to **"Load tools when needed"**, it may not show the summary and trend tools straight away. For the best experience, set it to **"Tools already loaded"** so every tool is available immediately. This is the single most common setup snag.
+
+<kbd><img src="images/claude-tool-access.png" width="700"></kbd>
+
+*(Image: the Claude Desktop connector menu showing "Tool access" set to "Tools already loaded".)*
+
+### A5. Select the persona and ask away
+From the same menu, choose the **"Clinical auditor persona"** prompt, then ask your question. A good first one:
+
+> *"Check what date ranges you have in my diabetes data, then give me an overview of how I'm doing."*
+
+<kbd><img src="images/claude-conversation.png" width="900"></kbd>
+
+*(Image: Claude using the tools to answer a question about your data.)*
 
 ---
 
-## Running Claude AND the API/Ollama at the same time
+## 🅱️ Section B: Use it with Open WebUI (local AI)
 
-You can. The background stack (Option A/B) runs the data server in network mode;
-Claude (Option C) launches its own copy in stdio mode. They share the same
-downloaded history in the `data` folder. The first time data is downloaded it is
-best to let one of them finish before hammering the other, after that they
-coexist happily.
+This path lets a **local** AI model (running on your own machine via [Ollama](https://ollama.com)) analyse your data, so nothing leaves your computer at all. It uses the full Docker stack, which also includes a bridge that turns the tools into a normal web API.
+
+### B1. Start the stack
+In your terminal, in the project folder, run:
+```bash
+docker compose up -d
+```
+This starts three things: the data server, a bridge (so web tools can reach it), and Open WebUI. The first question you ask may take a little longer while it loads your data.
+
+To check it is running:
+```bash
+docker compose logs omni-endo
+```
+
+### B2. Install Ollama and a model
+Install [Ollama](https://ollama.com), then pull a model that supports tools, for example:
+```bash
+ollama pull qwen2.5
+```
+
+> [!NOTE]
+> Local models vary a lot in how well they use tools. `qwen2.5` is a reliable starting point; very small models often struggle to call tools correctly.
+
+### B3. Open Open WebUI and connect the tools
+1. In your browser, go to **http://localhost:8083**
+2. Create the local account it asks for (this stays on your machine).
+3. Go to the tool/connector settings (in current versions this is under **Settings → Tools**, or **Admin Settings → External Tools**) and add a tool server:
+   * **URL:** `http://mcpo:8000`
+   * **API key / Bearer token:** the `OMNI_TOKEN` you set in `.env`.
+
+<kbd><img src="images/openwebui-tools.png" width="900"></kbd>
+
+*(Image: adding the omni-endo tool server in Open WebUI's settings.)*
+
+### B4. Chat
+Start a new chat, pick your tools-capable model, make sure the omni-endo tool is enabled for the chat, and ask the same kind of questions as above.
+
+### B5. Explore the raw API (optional)
+The bridge also gives you a browsable API. Open **http://localhost:8000/docs** to see every tool, read what it does, and even try it out (you'll be asked for your `OMNI_TOKEN`).
+
+> [!NOTE]
+> All dates in the API are **UTC**. If you call it directly, send UTC times and expect UTC back.
 
 ---
 
-## A note on your data and the token
+## 🛑 How to Stop
+* **Claude Desktop path:** nothing to stop, Claude shuts the container down itself when it's done.
+* **Open WebUI path:** in your terminal, in the project folder, run:
+  ```bash
+  docker compose down
+  ```
 
-This tool handles your personal health data and your Glooko login.
+---
 
-- Keep your `.env` private. Never commit it to a public repository or share it.
-- The `OMNI_TOKEN` protects the network endpoints on your machine. Use a strong
-  one if anything other than you can reach your computer's ports.
-- Nothing is sent anywhere except between these pieces on your own machine and
-  Glooko's own servers (to download your data).
+## 🛠️ Troubleshooting
+> [!NOTE]
+> This section will grow over time. If you hit something not covered here, please open an issue and I'll help.
+
+**Only some tools show up in Claude (e.g. just two).**
+Set Claude's tool loading to **"Tools already loaded"** (Section A4). In "Load tools when needed" mode Claude may not surface the summary/trend tools for a given question.
+
+**Claude seems to be running old behaviour after an update.**
+Rebuild the image: `docker compose build --no-cache`. A cached image can keep running old code.
+
+**"Port already in use".**
+Another app is using a port (3033, 8000, or 8083). Open `docker-compose.yml` and change the first number in the relevant `"XXXX:YYYY"` mapping (e.g. `"8083:8080"` to `"8090:8080"`), then start again and use the new port.
+
+**Open WebUI can't reach the tools.**
+Check the URL is `http://mcpo:8000` (not `localhost`) and that the API key matches your `OMNI_TOKEN` exactly.
+
+**I asked about a date and got nothing back.**
+If you're using the **example data** (offline mode), only the example's date range is available. Ask the assistant what date range it holds first.
+
+---
+
+## 📬 Get in Touch
+
+Whether you're stuck on Docker or want to share how the audit improved your Time in Range, I'm happy to help.
+
+### **Technical Help**
+If something isn't working, please **[Open an Issue](https://github.com/rilhia/omni-endo-ai-mcp/issues)** so others can benefit from the solution too.
+
+### **Personal & Professional**
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/rilhia/)
+
+> [!NOTE]
+> **Privacy Reminder:** if you send me a screenshot for support, please blur out any private medical information or Glooko credentials first.
 
 ---
 
 ## How the code is organised
+*(For developers reading the source. If you just want to use the tool, you can ignore this.)*
 
-If you are reading the source rather than just running it, here is the map. The
-flow of data is: Glooko → sync → store → range → analytics → tools → client.
+The data flows: Glooko -> sync -> store -> range -> analytics -> tools -> your AI.
 
-- **`src/server.js`** — The MCP server and the eleven tool definitions. This is
-  what Claude Desktop launches (over stdio). Each tool is a thin wrapper: it
-  validates inputs, resolves the glucose unit/boundaries, asks the range layer
-  for the window's data, hands that to the analytics functions, and returns the
-  shaped result. No clinical maths lives here.
+* **`src/server.js`**, the MCP server and the tool definitions (what Claude launches over stdio). Thin wrappers around the analytics.
+* **`src/http.js`**, an alternative HTTP/SSE front door to the same tools (used by Open WebUI via the bridge).
+* **`src/analytics.js`**, the heart: all the clinical maths and data shaping, written as pure functions.
+* **`src/store.js`**, the SQLite archive (normalised rows, not raw Glooko blobs).
+* **`src/range.js`**, the layer the tools call; answers from the local archive and tops up from Glooko only when needed. Offline mode is gated here.
+* **`src/sync.js`**, the engine that pulls Glooko data into the archive (cold start, top-up, startup warm-up).
+* **`src/glooko.js`**, the Glooko API client (auth and fetching).
+* **`src/prompt.js`**, the clinical-auditor persona.
 
-- **`src/http.js`** — An alternative front door to the same tools over HTTP/SSE
-  (used by the bridge and Open WebUI). Stateful and multi-client safe. Run
-  instead of stdio via `OMNI_TRANSPORT=http`.
+A few invariants hold throughout: glucose is stored internally in one canonical unit (mmol/L) and only converted on output; bolus is summed from individual events while basal comes from Glooko's daily totals; all times are UTC; and per-day rates use the real observed span of data.
 
-- **`src/analytics.js`** — The heart: all the clinical maths and data shaping,
-  written as pure functions (data in, plain objects out). Summaries, trends,
-  the enriched bolus log, hourly/day rankings, unit conversion and ingest
-  normalisation all live here. Start here to understand what the numbers mean.
+---
 
-- **`src/store.js`** — The SQLite archive. Holds normalised rows (CGM, bolus,
-  daily insulin, basal states, settings, device events), not raw Glooko blobs.
-  Owns the schema and the read/write queries.
-
-- **`src/range.js`** — The layer the tools actually call. Answers every question
-  from the local archive, topping it up from Glooko only when the window is not
-  already covered. This is also where offline mode is gated: with no
-  credentials, it never contacts Glooko.
-
-- **`src/sync.js`** — The engine that pulls from Glooko into the archive:
-  cold-start (first run), top-up (recent days), and the startup warm-up. Shared
-  by both transports so the fetch logic exists once.
-
-- **`src/glooko.js`** — The Glooko API client: authentication and fetching, with
-  a deliberate retry/re-login failure model.
-
-- **`src/prompt.js`** — The clinical-auditor persona, exposed as a selectable
-  MCP prompt. Pure instruction text; enforces nothing on its own.
-
-A few invariants hold across the whole codebase and explain choices that would
-otherwise look odd: glucose is stored internally in one canonical unit (mmol/L)
-and only converted to the display unit on the way out; bolus is always summed
-from individual events while basal comes only from Glooko's daily totals; all
-times are UTC end to end; and per-day rates use the real observed span of data
-rather than a calendar day count.
-
-## Ports used (change in docker-compose.yml only if they clash)
-
-| What                         | Address                      |
-|------------------------------|------------------------------|
-| Data server (MCP / SSE)      | http://localhost:3033/mcp    |
-| API explorer + API endpoints | http://localhost:8000/docs   |
-| Chat UI (Open WebUI)         | http://localhost:8083        |
+### Disclaimer
+*This tool is for informational and educational purposes only. It is not a medical device and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions regarding a medical condition. Any analysis produced with the help of this tool, including AI-generated suggestions, must be reviewed with a qualified clinical professional before making any changes to your insulin therapy or medical regimen.*
