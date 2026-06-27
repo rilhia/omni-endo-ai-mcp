@@ -18,8 +18,7 @@
 * [Step 1: Getting Ready (Installing Docker)](#step-1-installing-docker)
 * [Step 2: Getting the Files](#step-2-getting-the-files)
 * [Step 3: Configure Your Settings (`.env`)](#step-3-configure-your-settings)
-* [Step 4: Create the Data Folder](#step-4-create-the-data-folder)
-* [Step 5: Build the Tool](#step-5-build-the-tool)
+* [Step 4: Build the Tool](#step-4-build-the-tool)
 * [Section A: Use it with Claude Desktop](#section-a-claude-desktop)
 * [Section B: Use it with Open WebUI](#section-b-open-webui)
 * [Section C: Use it with the OpenAPI interface](#section-c-openapi)
@@ -164,6 +163,26 @@ Inside, you should see:
 * `.env.example`
 * ...and a few other small files.
 
+### Create the `data` folder
+The tool keeps its database in a folder called `data`, which sits at the same level as the `src` folder. You need to create it now, and what you put in it depends on whether you want to explore the included example data or use your own.
+
+4. **Create the folder.** In your project folder (the one containing `src/`), create a new, empty folder called exactly `data`.
+
+5. **Now follow the line that matches you:**
+
+   **To use the included example data (no Glooko account needed):**
+   Copy the database file out of the `examples` folder and into your new `data` folder, so you have:
+   ```
+   examples/omni-endo.db   ->   data/omni-endo.db
+   ```
+   That is all the `data` folder needs. The tool will read this example database and never contact Glooko.
+
+   **To use your own Glooko data:**
+   Leave the `data` folder **completely empty**. The tool will download your own data into it from Glooko on the first run. (If you copied the example database in earlier to try it, delete `data/omni-endo.db` now, so your real data is not mixed with mine.)
+
+> [!NOTE]
+> The example data is my own real diabetes data, shared on purpose so people have something genuine to explore. Either way, your data lives in this `data` folder and stays on your machine.
+
 ---
 
 <a id="step-3-configure-your-settings"></a>
@@ -203,7 +222,7 @@ To rename the copy: right-click `.env.example`, choose **Copy**, then **Paste**,
 1. **Copy the template:** Make a copy of `.env.example` and rename the copy to exactly `.env` (just `.env`, nothing before the dot).
 2. **Open `.env`** in any text editor and edit it for one of the two scenarios below.
 
-There are two ways to run the tool: with the **included example data** (no Glooko login, the quickest way to try it), or with **your own Glooko data**. Pick the scenario that applies to you. Each one tells you how to set `.env` here in Step 3, and then what to do with the `data` folder in [Step 4](#step-4-create-the-data-folder).
+There are two ways to run the tool: with the **included example data** (no Glooko login, the quickest way to try it), or with **your own Glooko data**. Pick the scenario that applies to you. Each one tells you how to set `.env` here in Step 3; the matching `data` folder setup was already covered in [Step 2](#step-2-getting-the-files).
 
 ### Scenario 1: Just trying it with the example data (no Glooko login)
 This is the easiest way to start, and it never contacts Glooko.
@@ -293,7 +312,7 @@ OMNI_OLDEST_DATE=
 #    Open WebUI (chat with Ollama): 8083
 ```
 
-When your `.env` is ready, go to [Step 4](#step-4-create-the-data-folder) and follow the **example data** instructions.
+When your `.env` is ready, the `data` folder you created in [Step 2](#step-2-getting-the-files) should contain the example database (`data/omni-endo.db`).
 
 ### Scenario 2: Using your own Glooko data
 To connect your own account and download your own history, set these in `.env`:
@@ -306,38 +325,15 @@ To connect your own account and download your own history, set these in `.env`:
    * `OMNI_LOWER` / `OMNI_UPPER` — your target blood sugar range, in the unit you chose for `OMNI_UNITS`.
    * `OMNI_OLDEST_DATE` (optional) — how far back to load on the first run; blank limits it to the last 3 months.
 
-When your `.env` is ready, go to [Step 4](#step-4-create-the-data-folder) and follow the **your own data** instructions.
+When your `.env` is ready, the `data` folder you created in [Step 2](#step-2-getting-the-files) should be empty, ready for your download.
 
 > [!IMPORTANT]
 > `GLOOKO_GLUCOSE_UNIT` (how your data **arrives** from Glooko) and `OMNI_UNITS` (how you want to **see** it) are different settings. They can be the same, but they do not have to be.
 
 ---
 
-<a id="step-4-create-the-data-folder"></a>
-## 📁 Step 4: Create the Data Folder
-Both ways of running the tool use a folder called `data`, at the same level as the `src` folder. This is where the database lives. What goes in it depends on which scenario you chose in Step 3.
-
-1. **Create the folder.** In your project folder (the one containing `src/`), create a new folder called exactly `data`.
-
-2. **Now follow the line that matches you:**
-
-   **If you are using the example data (Scenario 1):**
-   Copy the database file from the `examples` folder into your new `data` folder. So you copy:
-   ```
-   examples/omni-endo.db   ->   data/omni-endo.db
-   ```
-   That is the only thing the `data` folder needs. When the tool runs, it will read this example database and never contact Glooko.
-
-   **If you are using your own Glooko data (Scenario 2):**
-   Leave the `data` folder **completely empty**. The tool will download your own data from Glooko into it on first run. If you previously copied the example database in to try Scenario 1, **delete `data/omni-endo.db` now**, so your real data is not mixed with mine.
-
-> [!NOTE]
-> The example data is my own real diabetes data, shared on purpose so people have something genuine to explore. Whichever scenario you use, your data lives in this `data` folder and stays on your machine.
-
----
-
-<a id="step-5-build-the-tool"></a>
-## ▶️ Step 5: Build the Tool
+<a id="step-4-build-the-tool"></a>
+## ▶️ Step 4: Build the Tool
 Now we build the Docker image that Claude, Open WebUI and the OpenAPI interface all use.
 
 1. **Open a Terminal:**
@@ -405,7 +401,7 @@ Both paths above start with my project folder, `/Users/richard/Development/Docke
 
 The part **after** the colon (`:/data`) is the path *inside* the container and must be left exactly as it is — only change the part before the colon.
 
-The last line, `omni-endo-ai-mcp`, is the name of the Docker image you built in Step 5, and stays the same for everyone.
+The last line, `omni-endo-ai-mcp`, is the name of the Docker image you built in Step 4, and stays the same for everyone.
 
 > [!TIP]
 > Easiest way to get your exact path: in a terminal, `cd` into your project folder and run `pwd` (Mac) or `cd` with no arguments (Windows shows the path). Copy what it prints and use it in both lines above.
