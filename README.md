@@ -88,7 +88,7 @@ This project is built for people who use the **Omnipod 5** closed-loop insulin d
 | **Google Gemini** (via Open WebUI) | Free API key from [Google AI Studio](https://aistudio.google.com/) | Yes, to Google |
 | **Ollama** (via Open WebUI) | [Ollama](https://ollama.com) installed locally | No |
 
-> **ChatGPT / OpenAI:** MCP support may be possible in principle, but this project has not been tested with it. The free tier does not support MCP configuration and it is not a supported path here.
+> **ChatGPT / OpenAI:** MCP support may be possible in principle, but this project has not been tested with it. The free tier does not support MCP configuration and it is not a supported path here. But try it out and let me know!
 
 ---
 
