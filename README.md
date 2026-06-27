@@ -7,6 +7,29 @@
 
 ---
 
+## 📖 Table of Contents
+* [What is Omni-Endo AI?](#what-is-omni-endo-ai)
+  * [What does it actually do?](#what-does-it-actually-do)
+  * [The "Aha!" Moment](#the-aha-moment)
+  * [Why I Built This](#why-i-built-this)
+* [Privacy & Security](#privacy--security)
+* [The "Tough Love" AI Persona](#the-tough-love-ai-persona)
+* [Step 1: Getting Ready (Installing Docker)](#step-1-installing-docker)
+* [Step 2: Getting the Files](#step-2-getting-the-files)
+* [Step 3: Configure Your Settings (`.env`)](#step-3-configure-your-settings)
+* [Try it with the Example Data](#try-it-with-the-example-data)
+* [Step 4: Build the Tool](#step-4-build-the-tool)
+* [Section A: Use it with Claude Desktop](#section-a-claude-desktop)
+* [Section B: Use it with Open WebUI (local AI)](#section-b-open-webui)
+* [How to Stop](#how-to-stop)
+* [Troubleshooting](#troubleshooting)
+* [Get in Touch](#get-in-touch)
+* [How the Code is Organised](#how-the-code-is-organised)
+* [Disclaimer](#disclaimer)
+
+---
+
+<a id="what-is-omni-endo-ai"></a>
 ## 🌟 What is Omni-Endo AI?
 **Omni-Endo AI** is a bridge between your diabetes data and an AI assistant. It is an **MCP server** (Model Context Protocol), which is a standard way of giving an AI a set of tools it can use on your behalf.
 
@@ -17,6 +40,7 @@ You ask things like:
 * *"Why do I keep going high in the evenings?"*
 * *"Show me my worst day and tell me what happened."*
 
+<a id="what-does-it-actually-do"></a>
 ### 🚀 What does it actually do?
 Omni-Endo AI exposes your diabetes history as a set of analytical tools the AI can call:
 
@@ -27,9 +51,11 @@ Omni-Endo AI exposes your diabetes history as a set of analytical tools the AI c
 
 The assistant does all of this itself, live, by calling these tools while it talks to you.
 
+<a id="the-aha-moment"></a>
 ### The "Aha!" Moment
 This project started with a personal frustration. While trying to integrate my diabetes data into a **Home Assistant** dashboard, I discovered that the wealth of historical data stored in **Glooko** (especially from the **Omnipod 5**) is a goldmine. I realised that if I gave that data to an AI assistant and let it query the data directly, it could uncover patterns that months of manual logging never showed.
 
+<a id="why-i-built-this"></a>
 ### Why I Built This
 I built this to put the power back into the hands of the patient. We often only get 15 minutes with a consultant every few months. This tool lets you:
 1. **Be Proactive:** spot trends before your next appointment.
@@ -38,6 +64,7 @@ I built this to put the power back into the hands of the patient. We often only 
 
 ---
 
+<a id="privacy--security"></a>
 ## 🔒 Privacy & Security: Your Data, Your Control
 Because this involves sensitive medical credentials and data, it is designed with a **"local-first" architecture**.
 
@@ -53,6 +80,7 @@ Because this involves sensitive medical credentials and data, it is designed wit
 
 ---
 
+<a id="the-tough-love-ai-persona"></a>
 ## 🧐 The "Tough Love" AI Persona
 The tool ships with a built-in AI persona: a **"Tough Love" Endocrinologist**.
 
@@ -65,6 +93,7 @@ When you connect the tool, this persona is available as a selectable prompt call
 > [!WARNING]
 > Be aware that links in this document may take you away from this page. To open in a new tab, right-click and select **Open Link in New Tab**.
 
+<a id="step-1-installing-docker"></a>
 ## 🛠️ Step 1: Getting Ready (Installing Docker)
 To run this tool we use **Docker**. Think of Docker as a "shipping container" for software: it lets Omni-Endo AI run perfectly on your computer without you installing complicated code libraries by hand.
 
@@ -91,6 +120,7 @@ This may require a restart, so make sure you are ready for that before starting.
 
 ---
 
+<a id="step-2-getting-the-files"></a>
 ## 📂 Step 2: Getting the Files
 1. **Download the Code:** On [this GitHub page](https://github.com/rilhia/omni-endo-ai-mcp), click the green **"<> Code"** button, then **"Download ZIP"**.
 2. **Extract:** Open your Downloads folder, right-click the zip, and choose **"Extract All"**.
@@ -107,6 +137,7 @@ Inside, you should see:
 
 ---
 
+<a id="step-3-configure-your-settings"></a>
 ## ⚙️ Step 3: Configure Your Settings (`.env`)
 The tool reads its settings from a file called `.env`. The repository includes a template called `.env.example`, you make your own copy and fill it in.
 
@@ -130,6 +161,7 @@ Leave anything else at its default.
 
 ---
 
+<a id="try-it-with-the-example-data"></a>
 ## 🧪 Try it with the example data (optional, no login needed)
 This repo ships with a real example database so you can try everything before connecting your own account.
 
@@ -144,6 +176,7 @@ That's it, when you run the tool and connect your AI, it will analyse the exampl
 
 ---
 
+<a id="step-4-build-the-tool"></a>
 ## ▶️ Step 4: Build the Tool
 Now we build the Docker image that both Claude and Open WebUI will use.
 
@@ -165,6 +198,7 @@ You now have everything built. There are two ways to use it: **Claude Desktop** 
 
 ---
 
+<a id="section-a-claude-desktop"></a>
 ## 🅰️ Section A: Use it with Claude Desktop
 
 With Claude Desktop, Claude launches its own copy of the tool on demand and reads your data directly. You do **not** need to keep anything running in the terminal for this, Claude starts and stops the container itself.
@@ -218,7 +252,7 @@ In a chat, open the connector / tools menu. You should see **omni-endo** with it
 > [!IMPORTANT]
 > Claude Desktop has a setting for how it loads tools. If it is set to **"Load tools when needed"**, it may not show the summary and trend tools straight away. For the best experience, set it to **"Tools already loaded"** so every tool is available immediately. This is the single most common setup snag.
 
-<kbd><img src="images/claude-tool-access.png" width="700"></kbd>
+<kbd><img src="docs/images/claude-tool-access.png" width="700"></kbd>
 
 *(Image: the Claude Desktop connector menu showing "Tool access" set to "Tools already loaded".)*
 
@@ -227,12 +261,13 @@ From the same menu, choose the **"Clinical auditor persona"** prompt, then ask y
 
 > *"Check what date ranges you have in my diabetes data, then give me an overview of how I'm doing."*
 
-<kbd><img src="images/claude-conversation.png" width="900"></kbd>
+<kbd><img src="docs/images/claude-conversation.png" width="900"></kbd>
 
 *(Image: Claude using the tools to answer a question about your data.)*
 
 ---
 
+<a id="section-b-open-webui"></a>
 ## 🅱️ Section B: Use it with Open WebUI (local AI)
 
 This path lets a **local** AI model (running on your own machine via [Ollama](https://ollama.com)) analyse your data, so nothing leaves your computer at all. It uses the full Docker stack, which also includes a bridge that turns the tools into a normal web API.
@@ -265,7 +300,7 @@ ollama pull qwen2.5
    * **URL:** `http://mcpo:8000`
    * **API key / Bearer token:** the `OMNI_TOKEN` you set in `.env`.
 
-<kbd><img src="images/openwebui-tools.png" width="900"></kbd>
+<kbd><img src="docs/images/openwebui-tools.png" width="900"></kbd>
 
 *(Image: adding the omni-endo tool server in Open WebUI's settings.)*
 
@@ -280,6 +315,7 @@ The bridge also gives you a browsable API. Open **http://localhost:8000/docs** t
 
 ---
 
+<a id="how-to-stop"></a>
 ## 🛑 How to Stop
 * **Claude Desktop path:** nothing to stop, Claude shuts the container down itself when it's done.
 * **Open WebUI path:** in your terminal, in the project folder, run:
@@ -289,6 +325,7 @@ The bridge also gives you a browsable API. Open **http://localhost:8000/docs** t
 
 ---
 
+<a id="troubleshooting"></a>
 ## 🛠️ Troubleshooting
 > [!NOTE]
 > This section will grow over time. If you hit something not covered here, please open an issue and I'll help.
@@ -310,6 +347,7 @@ If you're using the **example data** (offline mode), only the example's date ran
 
 ---
 
+<a id="get-in-touch"></a>
 ## 📬 Get in Touch
 
 Whether you're stuck on Docker or want to share how the audit improved your Time in Range, I'm happy to help.
@@ -325,6 +363,7 @@ If something isn't working, please **[Open an Issue](https://github.com/rilhia/o
 
 ---
 
+<a id="how-the-code-is-organised"></a>
 ## How the code is organised
 *(For developers reading the source. If you just want to use the tool, you can ignore this.)*
 
@@ -343,5 +382,6 @@ A few invariants hold throughout: glucose is stored internally in one canonical 
 
 ---
 
+<a id="disclaimer"></a>
 ### Disclaimer
 *This tool is for informational and educational purposes only. It is not a medical device and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions regarding a medical condition. Any analysis produced with the help of this tool, including AI-generated suggestions, must be reviewed with a qualified clinical professional before making any changes to your insulin therapy or medical regimen.*
