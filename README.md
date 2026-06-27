@@ -12,6 +12,7 @@
   * [What does it actually do?](#what-does-it-actually-do)
   * [The "Aha!" Moment](#the-aha-moment)
   * [Why I Built This](#why-i-built-this)
+* [Who This Is For](#who-this-is-for)
 * [Privacy & Security](#privacy--security)
 * [The "Tough Love" AI Persona](#the-tough-love-ai-persona)
 * [Step 1: Getting Ready (Installing Docker)](#step-1-installing-docker)
@@ -20,7 +21,7 @@
 * [Try it with the Example Data](#try-it-with-the-example-data)
 * [Step 4: Build the Tool](#step-4-build-the-tool)
 * [Section A: Use it with Claude Desktop](#section-a-claude-desktop)
-* [Section B: Use it with Open WebUI (local AI)](#section-b-open-webui)
+* [Section B: Use it with Open WebUI](#section-b-open-webui)
 * [How to Stop](#how-to-stop)
 * [Troubleshooting](#troubleshooting)
 * [Get in Touch](#get-in-touch)
@@ -60,7 +61,33 @@ This project started with a personal frustration. While trying to integrate my d
 I built this to put the power back into the hands of the patient. We often only get 15 minutes with a consultant every few months. This tool lets you:
 1. **Be Proactive:** spot trends before your next appointment.
 2. **Be Private:** your data and credentials stay on your own machine.
-3. **Be Flexible:** use it with Claude Desktop, or with a local AI through Open WebUI.
+3. **Be Flexible:** use it with Claude Desktop, or with a local or cloud AI through Open WebUI.
+
+---
+
+<a id="who-this-is-for"></a>
+## 👤 Who This Is For
+
+This project is built for people who use the **Omnipod 5** closed-loop insulin delivery system and sync their data to **Glooko**. If that is not you, you can still explore the project using the three months of included sample data — no Omnipod 5 or Glooko account required for that path.
+
+### Prerequisites
+
+**Required by everyone**
+- **Docker** — the entire stack runs inside Docker. Install it from [docker.com](https://www.docker.com/get-started). See [Step 1](#step-1-installing-docker) below.
+
+**Required if you want to analyse your own data**
+- **An Omnipod 5** — the insulin delivery device whose data this project analyses.
+- **A Glooko account** — with your Omnipod 5 synced to it. This is how the MCP server retrieves your data.
+
+**Required — you need at least one AI to talk to**
+
+| Option | What you need | Data leaves your machine? |
+|--------|--------------|--------------------------|
+| **Claude Desktop** | Free download from [claude.ai/download](https://claude.ai/download) | Yes, to Anthropic |
+| **Google Gemini** (via Open WebUI) | Free API key from [Google AI Studio](https://aistudio.google.com/) | Yes, to Google |
+| **Ollama** (via Open WebUI) | [Ollama](https://ollama.com) installed locally | No |
+
+> **ChatGPT / OpenAI:** MCP support may be possible in principle, but this project has not been tested with it. The free tier does not support MCP configuration and it is not a supported path here.
 
 ---
 
@@ -70,10 +97,10 @@ Because this involves sensitive medical credentials and data, it is designed wit
 
 * **No Middle Man:** your Glooko username and password never leave your machine. They are sent directly from your local Docker container to Glooko's servers. No third-party server ever sees them.
 * **It runs on your computer:** the server, the database, and the analysis tools all run locally in Docker.
-* **You choose the AI:** connect it to Claude Desktop, or to a local model through Open WebUI. With a local model, your data never leaves your machine at all.
+* **You choose the AI:** connect it to Claude Desktop, to Google Gemini via Open WebUI, or to a local model through Open WebUI. With a local model, your data never leaves your machine at all.
 
 > [!IMPORTANT]
-> If you use a cloud AI assistant, most providers have a setting that allows them to "train" on your conversations. Before discussing your clinical data, consider turning off chat history / model training in that assistant's privacy settings, so your medical history stays private.
+> If you use a cloud AI assistant (Claude, Gemini), most providers have a setting that allows them to "train" on your conversations. Before discussing your clinical data, consider turning off chat history / model training in that assistant's privacy settings, so your medical history stays private.
 
 > [!TIP]
 > Want to try it before connecting your own account? This repository ships with a small **example database** of real data so you can explore everything offline, with no Glooko login at all. See **"Try it with the example data"** below.
@@ -238,11 +265,11 @@ To connect your own account and download your own history:
 1. **Create a `data` folder** at the same level as the `src` folder, and make sure it is **empty** (this is where your downloaded data will be stored). If you previously copied the example database in to try Scenario 1, remove it first so your data is not mixed with mine.
 2. **Add your Glooko login:** set `GLOOKO_EMAIL` and `GLOOKO_PASSWORD` to your normal Glooko credentials.
 3. **Set the remaining values to match you:**
-   * `GLOOKO_GLUCOSE_UNIT`, the unit your **Glooko account** is set to (`mmol` or `mgdl`). Get this right, it is how your data is read as it downloads.
-   * `OMNI_TOKEN`, your secret token (any hard-to-guess phrase).
-   * `OMNI_UNITS`, how you want to **see** your data (`mmol` or `mgdl`).
-   * `OMNI_LOWER` / `OMNI_UPPER`, your target range, in the unit you chose for `OMNI_UNITS`.
-   * `OMNI_OLDEST_DATE` (optional), how far back to load on the first run; blank means the last 3 months.
+   * `GLOOKO_GLUCOSE_UNIT` — the unit your **Glooko account** is set to (`mmol` or `mgdl`). Get this right, it is how your data is read as it downloads.
+   * `OMNI_TOKEN` — your secret token (any hard-to-guess phrase).
+   * `OMNI_UNITS` — how you want to **see** your data (`mmol` or `mgdl`).
+   * `OMNI_LOWER` / `OMNI_UPPER` — your target range, in the unit you chose for `OMNI_UNITS`.
+   * `OMNI_OLDEST_DATE` (optional) — how far back to load on the first run; blank means the last 3 months.
 
 > [!IMPORTANT]
 > `GLOOKO_GLUCOSE_UNIT` (how your data **arrives** from Glooko) and `OMNI_UNITS` (how you want to **see** it) are different settings. They can be the same, but they do not have to be.
@@ -257,7 +284,7 @@ This repo ships with a real example database so you can try everything before co
 2. **Copy** the file `examples/omni-endo.db` **into** that `data` folder.
 3. Make sure your `.env` has the **Glooko fields left blank** (this puts the tool in offline mode, so it will only ever read the example database and will never try to download anything).
 
-That's it, when you run the tool and connect your AI, it will analyse the example data exactly as if it were your own.
+That's it — when you run the tool and connect your AI, it will analyse the example data exactly as if it were your own.
 
 > [!NOTE]
 > The example data is my own real diabetes data, shared on purpose so people have something genuine to explore. When you later switch to your own account, your data lives in the same `data` folder and stays on your machine.
@@ -282,14 +309,14 @@ Now we build the Docker image that both Claude and Open WebUI will use.
 > [!IMPORTANT]
 > If you ever download a newer version of this tool, always rebuild with `docker compose build --no-cache`. A plain start can reuse an old cached image and run outdated code.
 
-You now have everything built. There are two ways to use it: **Claude Desktop** (Section A) or **Open WebUI with a local model** (Section B). You can set up either or both.
+You now have everything built. There are two ways to use it: **Claude Desktop** (Section A) or **Open WebUI** (Section B). You can set up either or both.
 
 ---
 
 <a id="section-a-claude-desktop"></a>
 ## 🅰️ Section A: Use it with Claude Desktop
 
-With Claude Desktop, Claude launches its own copy of the tool on demand and reads your data directly. You do **not** need to keep anything running in the terminal for this, Claude starts and stops the container itself.
+With Claude Desktop, Claude launches its own copy of the tool on demand and reads your data directly. You do **not** need to keep anything running in the terminal for this — Claude starts and stops the container itself.
 
 ### A1. Find your Claude config file
 Claude Desktop is configured by a file called `claude_desktop_config.json`.
@@ -300,7 +327,7 @@ Claude Desktop is configured by a file called `claude_desktop_config.json`.
 The easiest way to open it: in Claude Desktop go to **Settings → Developer → Edit Config**. That opens the right file for you.
 
 ### A2. Add the omni-endo server
-Add an `mcpServers` entry to the file. The block below is an **example using my own folder paths**, it will not work as-is on your machine, because the two paths point at where the project lives on *my* computer. Use it as a template and change those two paths to match *your* setup.
+Add an `mcpServers` entry to the file. The block below is an **example using my own folder paths** — it will not work as-is on your machine, because the two paths point at where the project lives on *my* computer. Use it as a template and change those two paths to match *your* setup.
 
 ```json
 {
@@ -324,16 +351,16 @@ Add an `mcpServers` entry to the file. The block below is an **example using my 
 
 If the file already has an `mcpServers` section, add just the `"omni-endo"` block inside it rather than pasting the whole thing.
 
-**How this relates to your setup, change these two paths:**
+**How this relates to your setup — change these two paths:**
 
 Both paths above start with my project folder, `/Users/richard/Development/Docker/agents/omni-endo-mcp`. Yours will be wherever you moved the extracted folder in Step 2. Replace my path with yours in both places:
 
-* **The `--env-file` line** must point to your `.env` file. So it becomes `<your project folder>/.env`. For example, if your project is at `/Users/jane/Desktop/omni-endo-mcp`, this line is `/Users/jane/Desktop/omni-endo-mcp/.env`.
-* **The `-v` line** must point to your `data` folder, followed by `:/data`. So it becomes `<your project folder>/data:/data`. For the same example: `/Users/jane/Desktop/omni-endo-mcp/data:/data`. The part **after** the colon (`/data`) is the path *inside* the container and must be left exactly as it is, only change the part before the colon.
+* **The `--env-file` line** must point to your `.env` file: `<your project folder>/.env`
+* **The `-v` line** must point to your `data` folder: `<your project folder>/data:/data`
+
+The part **after** the colon (`:/data`) is the path *inside* the container and must be left exactly as it is — only change the part before the colon.
 
 The last line, `omni-endo-ai-mcp`, is the name of the Docker image you built in Step 4, and stays the same for everyone.
-
-What this does, in plain terms: it tells Claude to run the `omni-endo-ai-mcp` image, hand it your settings (`--env-file`), and share your data folder with it (`-v ... :/data`) so it can read your database.
 
 > [!TIP]
 > Easiest way to get your exact path: in a terminal, `cd` into your project folder and run `pwd` (Mac) or `cd` with no arguments (Windows shows the path). Copy what it prints and use it in both lines above.
@@ -366,9 +393,9 @@ From the same menu, choose the **"Clinical auditor persona"** prompt, then ask y
 ---
 
 <a id="section-b-open-webui"></a>
-## 🅱️ Section B: Use it with Open WebUI (local AI)
+## 🅱️ Section B: Use it with Open WebUI
 
-This path lets a **local** AI model (running on your own machine via [Ollama](https://ollama.com)) analyse your data, so nothing leaves your computer at all. It uses the full Docker stack, which also includes a bridge that turns the tools into a normal web API.
+This path lets you use either a **local AI model** running on your own machine via [Ollama](https://ollama.com), or a **cloud model via Google Gemini**, through a browser-based chat interface. It uses the full Docker stack, which also includes a bridge that turns the tools into a normal web API.
 
 ### B1. Start the stack
 In your terminal, in the project folder, run:
@@ -382,31 +409,98 @@ To check it is running:
 docker compose logs omni-endo
 ```
 
-### B2. Install Ollama and a model
-Install [Ollama](https://ollama.com), then pull a model that supports tools, for example:
+### B2. Create your Open WebUI account
+Open **http://localhost:8083** in your browser. On first launch, Open WebUI will ask you to create an account.
+
+1. Click **Sign up** and enter a name, email address, and password. This account is local — it does not connect to any external service.
+2. The first account you create automatically becomes the admin account.
+
+### B3. Connect an AI model
+
+You need to connect Open WebUI to an AI backend. Choose one of the options below.
+
+#### Option A: Google Gemini (cloud, free tier available)
+
+**Get a Gemini API key**
+
+1. Go to [Google AI Studio](https://aistudio.google.com/) and sign in with your Google account.
+2. Click **Get API Key**, then **Create API key**.
+3. Copy the key and keep it somewhere safe.
+
+**Configure the connection in Open WebUI**
+
+1. Click your profile icon in the bottom-left corner and go to **Admin Panel → Settings → Connections**.
+2. Under the **OpenAI API** section, click **+** to add a new connection and enter:
+   - **API Base URL:** `https://generativelanguage.googleapis.com/v1beta/openai`
+   - **API Key:** paste your Gemini API key
+3. Click **Save**. Open WebUI will verify the connection and pull in the available models.
+
+**Select a Gemini model**
+
+1. Go back to the main chat window and click the model dropdown at the top.
+2. Search for `gemini` — do not search for "google". Models are listed by engine name, for example `gemini-2.5-flash` or `gemini-1.5-pro`.
+3. Select your preferred model and start chatting.
+
+> [!IMPORTANT]
+> If you use Gemini, your glucose and insulin data is sent to Google's servers as part of the conversation. Consider disabling chat history / model training in your Google AI Studio privacy settings before discussing your clinical data.
+
+#### Option B: Ollama (local models, nothing leaves your machine)
+
+Install [Ollama](https://ollama.com), then pull a model that supports tools. For example:
 ```bash
 ollama pull qwen2.5
 ```
 
+Then go to **Admin Panel → Settings → Connections** and add your Ollama endpoint (typically `http://host.docker.internal:11434`). Your locally available models will appear in the model dropdown.
+
 > [!NOTE]
 > Local models vary a lot in how well they use tools. `qwen2.5` is a reliable starting point; very small models often struggle to call tools correctly.
 
-### B3. Open Open WebUI and connect the tools
-1. In your browser, go to **http://localhost:8083**
-2. Create the local account it asks for (this stays on your machine).
-3. Go to the tool/connector settings (in current versions this is under **Settings → Tools**, or **Admin Settings → External Tools**) and add a tool server:
-   * **URL:** `http://mcpo:8000`
-   * **API key / Bearer token:** the `OMNI_TOKEN` you set in `.env`.
+---
 
-<kbd><img src="docs/images/openwebui-tools.png" width="900"></kbd>
+### B4. Enable the MCP server in Open WebUI
 
-*(Image: adding the omni-endo tool server in Open WebUI's settings.)*
+This connects Open WebUI to the omni-endo MCP server so the AI can call the data tools.
 
-### B4. Chat
-Start a new chat, pick your tools-capable model, make sure the omni-endo tool is enabled for the chat, and ask the same kind of questions as above.
+1. Go to **Admin Panel → Settings → Connections**.
+2. Scroll to the **MCP** section and click **+** to add a new connection.
+3. Set the **Type** to **MCP Streamable HTTP** and enter the following:
 
-### B5. Explore the raw API (optional)
-The bridge also gives you a browsable API. Open **http://localhost:8000/docs** to see every tool, read what it does, and even try it out (you'll be asked for your `OMNI_TOKEN`).
+   | Field | Value |
+   |-------|-------|
+   | Name | `omni-endo-ai-mcp` |
+   | URL | `http://omni-endo:3033/mcp` |
+   | Auth | Bearer |
+   | Token | the `OMNI_TOKEN` value from your `.env` file |
+
+4. Click **Save**.
+
+When you first open the Add Connection screen, you will see the default placeholder token `change-me-to-a-secret` already filled in the token field:
+
+<kbd><img src="docs/images/openwebui-mcp-add.png" width="700"></kbd>
+
+*(Image: the Add Connection screen in Open WebUI showing the default placeholder token.)*
+
+Replace it with the `OMNI_TOKEN` value you set in your `.env` file, then save. Once saved, the token will be shown masked:
+
+<kbd><img src="docs/images/openwebui-mcp-saved.png" width="700"></kbd>
+
+*(Image: the saved omni-endo MCP connection with the token masked.)*
+
+The refresh icon next to the URL can be used to test connectivity at any time.
+
+> [!NOTE]
+> Open WebUI's MCP support is experimental and the specification changes periodically. If you encounter connection errors after an Open WebUI update, check the project's issues page for compatibility notes.
+
+---
+
+### B5. Chat
+Start a new chat, select your model, make sure the omni-endo tools are enabled for the chat, and ask away. A good first question:
+
+> *"Check what date ranges you have in my diabetes data, then give me an overview of how I'm doing."*
+
+### B6. Explore the raw API (optional)
+The bridge also gives you a browsable API. Open **http://localhost:8000/docs** to see every tool, read what it does, and try it out (you'll be asked for your `OMNI_TOKEN`).
 
 > [!NOTE]
 > All dates in the API are **UTC**. If you call it directly, send UTC times and expect UTC back.
@@ -415,7 +509,7 @@ The bridge also gives you a browsable API. Open **http://localhost:8000/docs** t
 
 <a id="how-to-stop"></a>
 ## 🛑 How to Stop
-* **Claude Desktop path:** nothing to stop, Claude shuts the container down itself when it's done.
+* **Claude Desktop path:** nothing to stop — Claude shuts the container down itself when it's done.
 * **Open WebUI path:** in your terminal, in the project folder, run:
   ```bash
   docker compose down
@@ -437,11 +531,14 @@ Rebuild the image: `docker compose build --no-cache`. A cached image can keep ru
 **"Port already in use".**
 Another app is using a port (3033, 8000, or 8083). Open `docker-compose.yml` and change the first number in the relevant `"XXXX:YYYY"` mapping (e.g. `"8083:8080"` to `"8090:8080"`), then start again and use the new port.
 
-**Open WebUI can't reach the tools.**
-Check the URL is `http://mcpo:8000` (not `localhost`) and that the API key matches your `OMNI_TOKEN` exactly.
+**Open WebUI can't reach the MCP tools.**
+Check the URL is `http://omni-endo:3033/mcp` (not `localhost`) and that the bearer token matches your `OMNI_TOKEN` exactly.
 
 **I asked about a date and got nothing back.**
 If you're using the **example data** (offline mode), only the example's date range is available. Ask the assistant what date range it holds first.
+
+**Gemini models don't appear in the model dropdown.**
+Search for `gemini`, not `google`. The models are prefixed by engine name. If nothing appears, go back to **Admin Panel → Settings → Connections** and use the verify button to confirm the API key and base URL are accepted.
 
 ---
 
@@ -465,16 +562,16 @@ If something isn't working, please **[Open an Issue](https://github.com/rilhia/o
 ## How the code is organised
 *(For developers reading the source. If you just want to use the tool, you can ignore this.)*
 
-The data flows: Glooko -> sync -> store -> range -> analytics -> tools -> your AI.
+The data flows: Glooko → sync → store → range → analytics → tools → your AI.
 
-* **`src/server.js`**, the MCP server and the tool definitions (what Claude launches over stdio). Thin wrappers around the analytics.
-* **`src/http.js`**, an alternative HTTP/SSE front door to the same tools (used by Open WebUI via the bridge).
-* **`src/analytics.js`**, the heart: all the clinical maths and data shaping, written as pure functions.
-* **`src/store.js`**, the SQLite archive (normalised rows, not raw Glooko blobs).
-* **`src/range.js`**, the layer the tools call; answers from the local archive and tops up from Glooko only when needed. Offline mode is gated here.
-* **`src/sync.js`**, the engine that pulls Glooko data into the archive (cold start, top-up, startup warm-up).
-* **`src/glooko.js`**, the Glooko API client (auth and fetching).
-* **`src/prompt.js`**, the clinical-auditor persona.
+* **`src/server.js`** — the MCP server and the tool definitions (what Claude launches over stdio). Thin wrappers around the analytics.
+* **`src/http.js`** — an alternative HTTP/SSE front door to the same tools (used by Open WebUI via the bridge).
+* **`src/analytics.js`** — the heart: all the clinical maths and data shaping, written as pure functions.
+* **`src/store.js`** — the SQLite archive (normalised rows, not raw Glooko blobs).
+* **`src/range.js`** — the layer the tools call; answers from the local archive and tops up from Glooko only when needed. Offline mode is gated here.
+* **`src/sync.js`** — the engine that pulls Glooko data into the archive (cold start, top-up, startup warm-up).
+* **`src/glooko.js`** — the Glooko API client (auth and fetching).
+* **`src/prompt.js`** — the clinical-auditor persona.
 
 A few invariants hold throughout: glucose is stored internally in one canonical unit (mmol/L) and only converted on output; bolus is summed from individual events while basal comes from Glooko's daily totals; all times are UTC; and per-day rates use the real observed span of data.
 
