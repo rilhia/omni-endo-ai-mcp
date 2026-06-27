@@ -32,10 +32,10 @@
 ---
 
 <a id="what-is-omni-endo-ai"></a>
-## 🌟 What is Omni-Endo AI?
-**Omni-Endo AI** is a bridge between your diabetes data and an AI assistant. It is an **MCP server** (Model Context Protocol), which is a standard way of giving an AI a set of tools it can use on your behalf.
+## 🌟 What is Omni-Endo AI (MCP)?
+**Omni-Endo AI** is a bridge between your diabetes data and an AI assistant. The original version was written as a web app. It can be found [here](https://github.com/rilhia/omni-endo-ai). This is an **MCP server** (Model Context Protocol) version, which is a standard way of giving an AI a set of tools it can use on your behalf. No need to copy and paste content between a website and an LLM and no need to pay for API use. The previous version was purposefully designed not to be tied to an LLM and to not mean that API calls needed to be paid for. Since it is now easy to use an MCP with Claude for free, I figured why not try it out.
 
-Instead of copying and pasting reports, you simply *talk* to your assistant. You ask a question in plain language, and the assistant reaches into your data, pulls exactly what it needs, and analyses it for you, all within the conversation.
+With this version you simply *talk* to your assistant. You ask a question in plain language, and the assistant reaches into your data, pulls exactly what it needs, and analyses it for you, all within the conversation.
 
 You ask things like:
 * *"How was my time in range last month?"*
@@ -55,7 +55,7 @@ The assistant does all of this itself, live, by calling these tools while it tal
 
 <a id="the-aha-moment"></a>
 ### The "Aha!" Moment
-This project started with a personal frustration. While trying to integrate my diabetes data into a **Home Assistant** dashboard, I discovered that the wealth of historical data stored in **Glooko** (especially from the **Omnipod 5**) is a goldmine. I realised that if I gave that data to an AI assistant and let it query the data directly, it could uncover patterns that months of manual logging never showed.
+This project started with a personal frustration. While trying to integrate my diabetes data into a [**Home Assistant**](https://www.home-assistant.io/) dashboard, I discovered that the wealth of historical data stored in [**Glooko**](https://glooko.com/) (especially from the **Omnipod 5**) is a goldmine. I realised that if I gave that data to an AI assistant and let it query the data directly, it could uncover patterns that months of manual logging never showed.
 
 <a id="why-i-built-this"></a>
 ### Why I Built This
@@ -69,7 +69,7 @@ I built this to put the power back into the hands of the patient. We often only 
 <a id="who-this-is-for"></a>
 ## 👤 Who This Is For
 
-This project is built for people who use the **Omnipod 5** closed-loop insulin delivery system and sync their data to **Glooko**. If that is not you, you can still explore the project using the three months of included sample data — no Omnipod 5 or Glooko account required for that path.
+This project is built for people who use the **Omnipod 5** hybrid closed-loop insulin delivery system and sync their data to **Glooko**. If that is not you, you can still explore the project using the three months of included sample data (my data) — no Omnipod 5 or Glooko account required for that path.
 
 ### Prerequisites
 
@@ -123,7 +123,7 @@ When you connect the tool, this persona is available as a selectable prompt call
 
 <a id="step-1-installing-docker"></a>
 ## 🛠️ Step 1: Getting Ready (Installing Docker)
-To run this tool we use **Docker**. Think of Docker as a "shipping container" for software: it lets Omni-Endo AI run perfectly on your computer without you installing complicated code libraries by hand.
+To run this tool we use **Docker**. Think of Docker as a "shipping container" for software: it lets Omni-Endo AI (MCP) run perfectly on your computer without you installing complicated code libraries by hand.
 
 This may require a restart, so make sure you are ready for that before starting.
 
@@ -153,7 +153,7 @@ This may require a restart, so make sure you are ready for that before starting.
 1. **Download the Code:** On [this GitHub page](https://github.com/rilhia/omni-endo-ai-mcp), click the green **"<> Code"** button, then **"Download ZIP"**.
 2. **Extract:** Open your Downloads folder, right-click the zip, and choose **"Extract All"**.
 3. **Move:** Move the extracted folder somewhere easy to find and remember, this location matters for the steps below. For example:
-   `/Users/richard/Development/Docker/agents/omni-endo-mcp`
+   `/Users/richard/Development/Docker/omni-endo-ai-mcp-main`
 
 Inside, you should see:
 * `src/` (the application code)
@@ -169,6 +169,36 @@ Inside, you should see:
 ## ⚙️ Step 3: Configure Your Settings (`.env`)
 The tool reads its settings from a file called `.env`. The repository includes a template called `.env.example`, you make your own copy and fill it in.
 
+### Before you start: making hidden files visible
+
+Files whose names start with a dot (like `.env`) are hidden by default on both Mac and Windows. You need to make them visible before you can see, copy, or rename them.
+
+#### On a Mac
+
+1. Open **Finder** and navigate to your project folder.
+2. Press **Cmd + Shift + .** (Command, Shift, and the full stop key together). Hidden files will appear, shown in a slightly greyed-out style.
+3. Press the same shortcut again to hide them when you are done.
+
+Alternatively, you can do everything from Terminal without needing to see the file at all:
+```bash
+cp .env.example .env
+```
+Run this from inside your project folder. It copies the template to `.env` in one step.
+
+#### On Windows
+
+1. Open **File Explorer** and navigate to your project folder.
+2. Click the **View** tab at the top of the window.
+3. Check the box labelled **"Hidden items"**. Hidden files will now appear, shown with a slightly faded icon.
+4. On Windows 11, go to **View → Show → Hidden items** instead.
+
+To rename the copy: right-click `.env.example`, choose **Copy**, then **Paste**, then right-click the new copy and choose **Rename**. Type `.env` and press Enter. Windows may warn you that changing the extension could make the file unusable — click **Yes**.
+
+> [!NOTE]
+> Windows can be reluctant to save a file with no name before the dot. If your text editor saves it as `.env.txt` by default, rename it and remove the `.txt` part, confirming the extension change when prompted. In Notepad, use **File → Save As**, set **Save as type** to **All Files (*.*)**, and type `.env` as the filename.
+
+---
+
 1. **Copy the template:** Make a copy of `.env.example` and rename the copy to exactly `.env` (just `.env`, nothing before the dot).
 2. **Open `.env`** in any text editor and edit it for one of the two scenarios below.
 
@@ -177,10 +207,10 @@ This is the easiest way to start, and it never contacts Glooko.
 
 * `GLOOKO_EMAIL` and `GLOOKO_PASSWORD`: **leave both blank.** Blank credentials put the tool in offline mode, so it only ever reads the example database.
 * `GLOOKO_GLUCOSE_UNIT`: set to `mmol`. The example data is mine, and I am British, so it is recorded in mmol/L.
-* `OMNI_TOKEN`: set any hard-to-guess phrase (only needed for the Open WebUI path).
+* `OMNI_TOKEN`: set any hard-to-guess phrase (needed for the Open WebUI path and the OpenAPI web page if you want to use the functions there).
 * The display settings (`OMNI_UNITS`, `OMNI_LOWER`, `OMNI_UPPER`) can be left at their mmol defaults to view it the way I do.
 
-The example `.env` below is ready to use for a test against the provided data. Copy it as-is (just change `OMNI_TOKEN`):
+The example `.env` below is ready to use for a test against the provided data. Copy it as-is to use it:
 
 ```bash
 # ============================================================================
@@ -269,8 +299,8 @@ To connect your own account and download your own history:
    * `GLOOKO_GLUCOSE_UNIT` — the unit your **Glooko account** is set to (`mmol` or `mgdl`). Get this right, it is how your data is read as it downloads.
    * `OMNI_TOKEN` — your secret token (any hard-to-guess phrase).
    * `OMNI_UNITS` — how you want to **see** your data (`mmol` or `mgdl`).
-   * `OMNI_LOWER` / `OMNI_UPPER` — your target range, in the unit you chose for `OMNI_UNITS`.
-   * `OMNI_OLDEST_DATE` (optional) — how far back to load on the first run; blank means the last 3 months.
+   * `OMNI_LOWER` / `OMNI_UPPER` — your target blood sugar range, in the unit you chose for `OMNI_UNITS`.
+   * `OMNI_OLDEST_DATE` (optional) — how far back to load on the first run; blank limits it to the last 3 months.
 
 > [!IMPORTANT]
 > `GLOOKO_GLUCOSE_UNIT` (how your data **arrives** from Glooko) and `OMNI_UNITS` (how you want to **see** it) are different settings. They can be the same, but they do not have to be.
@@ -300,7 +330,7 @@ Now we build the Docker image that both Claude and Open WebUI will use.
    - **Windows:** open "PowerShell" from the Start Menu.
    - **Mac:** open "Terminal" (Cmd + Space, type Terminal).
 2. **Go to the folder:** type `cd` then a space, then drag your project folder into the terminal window so the path fills in, and press Enter. For example:
-   `cd /Users/richard/Development/Docker/agents/omni-endo-mcp`
+   `cd /Users/richard/Development/Docker/omni-endo-ai-mcp-main`
 3. **Build it:** run this command and press Enter:
    ```bash
    docker compose build --no-cache
@@ -310,7 +340,7 @@ Now we build the Docker image that both Claude and Open WebUI will use.
 > [!IMPORTANT]
 > If you ever download a newer version of this tool, always rebuild with `docker compose build --no-cache`. A plain start can reuse an old cached image and run outdated code.
 
-You now have everything built. There are two ways to use it: **Claude Desktop** (Section A) or **Open WebUI** (Section B). You can set up either or both.
+You now have everything built. There are three ways to use it: **Claude Desktop** (Section A), **Open WebUI** (Section B) or try out the functions with the **OpenAPI** interface. You can use all methods or choose a favourite.
 
 ---
 
@@ -340,9 +370,9 @@ Add an `mcpServers` entry to the file. The block below is an **example using my 
         "-i",
         "--rm",
         "--env-file",
-        "/Users/richard/Development/Docker/agents/omni-endo-mcp/.env",
+        "/Users/richard/Development/Docker/omni-endo-ai-mcp-main/.env",
         "-v",
-        "/Users/richard/Development/Docker/agents/omni-endo-mcp/data:/data",
+        "/Users/richard/Development/Docker/omni-endo-ai-mcp-main/data:/data",
         "omni-endo-ai-mcp"
       ]
     }
@@ -354,7 +384,7 @@ If the file already has an `mcpServers` section, add just the `"omni-endo"` bloc
 
 **How this relates to your setup — change these two paths:**
 
-Both paths above start with my project folder, `/Users/richard/Development/Docker/agents/omni-endo-mcp`. Yours will be wherever you moved the extracted folder in Step 2. Replace my path with yours in both places:
+Both paths above start with my project folder, `/Users/richard/Development/Docker/omni-endo-ai-mcp-main`. Yours will be wherever you moved the extracted folder in Step 2. Replace my path with yours in both places:
 
 * **The `--env-file` line** must point to your `.env` file: `<your project folder>/.env`
 * **The `-v` line** must point to your `data` folder: `<your project folder>/data:/data`
