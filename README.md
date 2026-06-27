@@ -18,10 +18,11 @@
 * [Step 1: Getting Ready (Installing Docker)](#step-1-installing-docker)
 * [Step 2: Getting the Files](#step-2-getting-the-files)
 * [Step 3: Configure Your Settings (`.env`)](#step-3-configure-your-settings)
-* [Try it with the Example Data](#try-it-with-the-example-data)
-* [Step 4: Build the Tool](#step-4-build-the-tool)
+* [Step 4: Create the Data Folder](#step-4-create-the-data-folder)
+* [Step 5: Build the Tool](#step-5-build-the-tool)
 * [Section A: Use it with Claude Desktop](#section-a-claude-desktop)
 * [Section B: Use it with Open WebUI](#section-b-open-webui)
+* [Section C: Use it with the OpenAPI interface](#section-c-openapi)
 * [How to Stop](#how-to-stop)
 * [Troubleshooting](#troubleshooting)
 * [Get in Touch](#get-in-touch)
@@ -104,7 +105,7 @@ Because this involves sensitive medical credentials and data, it is designed wit
 > If you use a cloud AI assistant (Claude, Gemini), most providers have a setting that allows them to "train" on your conversations. Before discussing your clinical data, consider turning off chat history / model training in that assistant's privacy settings, so your medical history stays private.
 
 > [!TIP]
-> Want to try it before connecting your own account? This repository ships with a small **example database** of real data so you can explore everything offline, with no Glooko login at all. See **"Try it with the example data"** below.
+> Want to try it before connecting your own account? This repository ships with a small **example database** of real data so you can explore everything offline, with no Glooko login at all. Follow the "example data" path through Steps 3 and 4 below.
 
 ---
 
@@ -202,6 +203,8 @@ To rename the copy: right-click `.env.example`, choose **Copy**, then **Paste**,
 1. **Copy the template:** Make a copy of `.env.example` and rename the copy to exactly `.env` (just `.env`, nothing before the dot).
 2. **Open `.env`** in any text editor and edit it for one of the two scenarios below.
 
+There are two ways to run the tool: with the **included example data** (no Glooko login, the quickest way to try it), or with **your own Glooko data**. Pick the scenario that applies to you. Each one tells you how to set `.env` here in Step 3, and then what to do with the `data` folder in [Step 4](#step-4-create-the-data-folder).
+
 ### Scenario 1: Just trying it with the example data (no Glooko login)
 This is the easiest way to start, and it never contacts Glooko.
 
@@ -290,41 +293,52 @@ OMNI_OLDEST_DATE=
 #    Open WebUI (chat with Ollama): 8083
 ```
 
-### Scenario 2: Using your own Glooko data
-To connect your own account and download your own history:
+When your `.env` is ready, go to [Step 4](#step-4-create-the-data-folder) and follow the **example data** instructions.
 
-1. **Create a `data` folder** at the same level as the `src` folder, and make sure it is **empty** (this is where your downloaded data will be stored). If you previously copied the example database in to try Scenario 1, remove it first so your data is not mixed with mine.
-2. **Add your Glooko login:** set `GLOOKO_EMAIL` and `GLOOKO_PASSWORD` to your normal Glooko credentials.
-3. **Set the remaining values to match you:**
+### Scenario 2: Using your own Glooko data
+To connect your own account and download your own history, set these in `.env`:
+
+1. **Add your Glooko login:** set `GLOOKO_EMAIL` and `GLOOKO_PASSWORD` to your normal Glooko credentials.
+2. **Set the remaining values to match you:**
    * `GLOOKO_GLUCOSE_UNIT` — the unit your **Glooko account** is set to (`mmol` or `mgdl`). Get this right, it is how your data is read as it downloads.
    * `OMNI_TOKEN` — your secret token (any hard-to-guess phrase).
    * `OMNI_UNITS` — how you want to **see** your data (`mmol` or `mgdl`).
    * `OMNI_LOWER` / `OMNI_UPPER` — your target blood sugar range, in the unit you chose for `OMNI_UNITS`.
    * `OMNI_OLDEST_DATE` (optional) — how far back to load on the first run; blank limits it to the last 3 months.
 
+When your `.env` is ready, go to [Step 4](#step-4-create-the-data-folder) and follow the **your own data** instructions.
+
 > [!IMPORTANT]
 > `GLOOKO_GLUCOSE_UNIT` (how your data **arrives** from Glooko) and `OMNI_UNITS` (how you want to **see** it) are different settings. They can be the same, but they do not have to be.
 
 ---
 
-<a id="try-it-with-the-example-data"></a>
-## 🧪 Try it with the example data (optional, no login needed)
-This repo ships with a real example database so you can try everything before connecting your own account.
+<a id="step-4-create-the-data-folder"></a>
+## 📁 Step 4: Create the Data Folder
+Both ways of running the tool use a folder called `data`, at the same level as the `src` folder. This is where the database lives. What goes in it depends on which scenario you chose in Step 3.
 
-1. In the project folder, **create a folder called `data`** if it isn't already there.
-2. **Copy** the file `examples/omni-endo.db` **into** that `data` folder.
-3. Make sure your `.env` has the **Glooko fields left blank** (this puts the tool in offline mode, so it will only ever read the example database and will never try to download anything).
+1. **Create the folder.** In your project folder (the one containing `src/`), create a new folder called exactly `data`.
 
-That's it — when you run the tool and connect your AI, it will analyse the example data exactly as if it were your own.
+2. **Now follow the line that matches you:**
+
+   **If you are using the example data (Scenario 1):**
+   Copy the database file from the `examples` folder into your new `data` folder. So you copy:
+   ```
+   examples/omni-endo.db   ->   data/omni-endo.db
+   ```
+   That is the only thing the `data` folder needs. When the tool runs, it will read this example database and never contact Glooko.
+
+   **If you are using your own Glooko data (Scenario 2):**
+   Leave the `data` folder **completely empty**. The tool will download your own data from Glooko into it on first run. If you previously copied the example database in to try Scenario 1, **delete `data/omni-endo.db` now**, so your real data is not mixed with mine.
 
 > [!NOTE]
-> The example data is my own real diabetes data, shared on purpose so people have something genuine to explore. When you later switch to your own account, your data lives in the same `data` folder and stays on your machine.
+> The example data is my own real diabetes data, shared on purpose so people have something genuine to explore. Whichever scenario you use, your data lives in this `data` folder and stays on your machine.
 
 ---
 
-<a id="step-4-build-the-tool"></a>
-## ▶️ Step 4: Build the Tool
-Now we build the Docker image that both Claude and Open WebUI will use.
+<a id="step-5-build-the-tool"></a>
+## ▶️ Step 5: Build the Tool
+Now we build the Docker image that Claude, Open WebUI and the OpenAPI interface all use.
 
 1. **Open a Terminal:**
    - **Windows:** open "PowerShell" from the Start Menu.
@@ -340,7 +354,7 @@ Now we build the Docker image that both Claude and Open WebUI will use.
 > [!IMPORTANT]
 > If you ever download a newer version of this tool, always rebuild with `docker compose build --no-cache`. A plain start can reuse an old cached image and run outdated code.
 
-You now have everything built. There are three ways to use it: **Claude Desktop** (Section A), **Open WebUI** (Section B) or try out the functions with the **OpenAPI** interface. You can use all methods or choose a favourite.
+You now have everything built. There are three ways to use it: **Claude Desktop** (Section A), **Open WebUI** (Section B), or the **OpenAPI interface** (Section C). You can use all three or just pick a favourite.
 
 ---
 
@@ -391,7 +405,7 @@ Both paths above start with my project folder, `/Users/richard/Development/Docke
 
 The part **after** the colon (`:/data`) is the path *inside* the container and must be left exactly as it is — only change the part before the colon.
 
-The last line, `omni-endo-ai-mcp`, is the name of the Docker image you built in Step 4, and stays the same for everyone.
+The last line, `omni-endo-ai-mcp`, is the name of the Docker image you built in Step 5, and stays the same for everyone.
 
 > [!TIP]
 > Easiest way to get your exact path: in a terminal, `cd` into your project folder and run `pwd` (Mac) or `cd` with no arguments (Windows shows the path). Copy what it prints and use it in both lines above.
@@ -530,18 +544,71 @@ Start a new chat, select your model, make sure the omni-endo tools are enabled f
 
 > *"Check what date ranges you have in my diabetes data, then give me an overview of how I'm doing."*
 
-### B6. Explore the raw API (optional)
-The bridge also gives you a browsable API. Open **http://localhost:8000/docs** to see every tool, read what it does, and try it out (you'll be asked for your `OMNI_TOKEN`).
+---
+
+<a id="section-c-openapi"></a>
+## 🅾️ Section C: Use it with the OpenAPI interface
+
+Every tool is also available as a normal web API, with a built-in interactive page (Swagger UI) where you can read what each function does, see exactly what it accepts, and run it live in your browser. This is the easiest way to explore the tools by hand, to check what the AI is actually calling on your behalf, or to build your own integration.
+
+You do not need an AI for this path at all — it talks to the data tools directly.
+
+### C1. Start the stack
+The API runs as part of the Docker stack. In your terminal, in the project folder, run:
+```bash
+docker compose up -d
+```
+(If you already started it for Section B, it is already running.)
+
+### C2. Open the interactive API page
+In your browser, go to:
+```
+http://localhost:8000/docs
+```
+You will see every tool listed, each with a description and a **"Try it out"** button.
+
+### C3. Authorise with your token
+The functions are protected by your secret token, so you authorise once before using them.
+
+1. Click the **Authorize** button near the top of the page.
+2. Paste the `OMNI_TOKEN` value from your `.env` file.
+3. Click **Authorize**, then **Close**.
+
+You can now run any function on the page.
+
+### C4. Try a function
+A good first one is **`get_diabetes_summary`**, which gives an overview and also tells you the date range the database holds.
+
+1. Click on **`get_diabetes_summary`** to expand it.
+2. Click **"Try it out"**.
+3. In the request body, enter a wide window so you can see everything held, for example:
+   ```json
+   {
+     "start": "2000-01-01T00:00:00.000Z",
+     "end": "2030-01-01T00:00:00.000Z"
+   }
+   ```
+4. Click **Execute**. The response appears below, including a `reportRange` showing the first and last data the database actually holds.
 
 > [!NOTE]
-> All dates in the API are **UTC**. If you call it directly, send UTC times and expect UTC back.
+> All times in the API are **UTC** (the trailing `Z`). Send UTC, and expect UTC back. See the [API Reference](#api-reference) at the end of this document for every endpoint, its parameters, and what it returns.
+
+### C5. Call it from a script (optional)
+You can also call the API from the command line or your own code. Send the token as a header:
+```bash
+curl -X POST http://localhost:8000/get_diabetes_summary \
+  -H "Authorization: Bearer YOUR_OMNI_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"start":"2026-01-01T00:00:00.000Z","end":"2026-04-01T00:00:00.000Z"}'
+```
+Replace `YOUR_OMNI_TOKEN` with the token from your `.env`.
 
 ---
 
 <a id="how-to-stop"></a>
 ## 🛑 How to Stop
 * **Claude Desktop path:** nothing to stop — Claude shuts the container down itself when it's done.
-* **Open WebUI path:** in your terminal, in the project folder, run:
+* **Open WebUI or OpenAPI path:** in your terminal, in the project folder, run:
   ```bash
   docker compose down
   ```
@@ -565,8 +632,11 @@ Another app is using a port (3033, 8000, or 8083). Open `docker-compose.yml` and
 **Open WebUI can't reach the MCP tools.**
 Check the URL is `http://omni-endo:3033/mcp` (not `localhost`) and that the bearer token matches your `OMNI_TOKEN` exactly.
 
+**The OpenAPI page rejects my requests (401 / unauthorised).**
+Click **Authorize** at the top of `http://localhost:8000/docs` and paste your `OMNI_TOKEN`. The token must match the one in your `.env` exactly.
+
 **I asked about a date and got nothing back.**
-If you're using the **example data** (offline mode), only the example's date range is available. Ask the assistant what date range it holds first.
+If you're using the **example data** (offline mode), only the example's date range is available. Ask the assistant what date range it holds first, or call `get_diabetes_summary` with a wide window and read `reportRange`.
 
 **Gemini models don't appear in the model dropdown.**
 Search for `gemini`, not `google`. The models are prefixed by engine name. If nothing appears, go back to **Admin Panel → Settings → Connections** and use the verify button to confirm the API key and base URL are accepted.
@@ -586,31 +656,6 @@ If something isn't working, please **[Open an Issue](https://github.com/rilhia/o
 
 > [!NOTE]
 > **Privacy Reminder:** if you send me a screenshot for support, please blur out any private medical information or Glooko credentials first.
-
----
-
-<a id="how-the-code-is-organised"></a>
-## How the code is organised
-*(For developers reading the source. If you just want to use the tool, you can ignore this.)*
-
-The data flows: Glooko → sync → store → range → analytics → tools → your AI.
-
-* **`src/server.js`** — the MCP server and the tool definitions (what Claude launches over stdio). Thin wrappers around the analytics.
-* **`src/http.js`** — an alternative HTTP/SSE front door to the same tools (used by Open WebUI via the bridge).
-* **`src/analytics.js`** — the heart: all the clinical maths and data shaping, written as pure functions.
-* **`src/store.js`** — the SQLite archive (normalised rows, not raw Glooko blobs).
-* **`src/range.js`** — the layer the tools call; answers from the local archive and tops up from Glooko only when needed. Offline mode is gated here.
-* **`src/sync.js`** — the engine that pulls Glooko data into the archive (cold start, top-up, startup warm-up).
-* **`src/glooko.js`** — the Glooko API client (auth and fetching).
-* **`src/prompt.js`** — the clinical-auditor persona.
-
-A few invariants hold throughout: glucose is stored internally in one canonical unit (mmol/L) and only converted on output; bolus is summed from individual events while basal comes from Glooko's daily totals; all times are UTC; and per-day rates use the real observed span of data.
-
----
-
-<a id="disclaimer"></a>
-### Disclaimer
-*This tool is for informational and educational purposes only. It is not a medical device and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions regarding a medical condition. Any analysis produced with the help of this tool, including AI-generated suggestions, must be reviewed with a qualified clinical professional before making any changes to your insulin therapy or medical regimen.*
 
 ---
 
@@ -892,3 +937,28 @@ Use it to judge a post-meal glucose excursion and assess how well a dose worked,
 **Returns**
 
 `targetEvent` (the timestamp you passed), `unit`, a `glucoseTimeline` array (`time`, `value`) across the 3.5-hour window, and an `associatedBoluses` array of enriched bolus records that fall within the window.
+
+---
+
+<a id="how-the-code-is-organised"></a>
+## How the code is organised
+*(For developers reading the source. If you just want to use the tool, you can ignore this.)*
+
+The data flows: Glooko → sync → store → range → analytics → tools → your AI.
+
+* **`src/server.js`** — the MCP server and the tool definitions (what Claude launches over stdio). Thin wrappers around the analytics.
+* **`src/http.js`** — an alternative HTTP/SSE front door to the same tools (used by Open WebUI via the bridge).
+* **`src/analytics.js`** — the heart: all the clinical maths and data shaping, written as pure functions.
+* **`src/store.js`** — the SQLite archive (normalised rows, not raw Glooko blobs).
+* **`src/range.js`** — the layer the tools call; answers from the local archive and tops up from Glooko only when needed. Offline mode is gated here.
+* **`src/sync.js`** — the engine that pulls Glooko data into the archive (cold start, top-up, startup warm-up).
+* **`src/glooko.js`** — the Glooko API client (auth and fetching).
+* **`src/prompt.js`** — the clinical-auditor persona.
+
+A few invariants hold throughout: glucose is stored internally in one canonical unit (mmol/L) and only converted on output; bolus is summed from individual events while basal comes from Glooko's daily totals; all times are UTC; and per-day rates use the real observed span of data.
+
+---
+
+<a id="disclaimer"></a>
+### Disclaimer
+*This tool is for informational and educational purposes only. It is not a medical device and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions regarding a medical condition. Any analysis produced with the help of this tool, including AI-generated suggestions, must be reviewed with a qualified clinical professional before making any changes to your insulin therapy or medical regimen.*
