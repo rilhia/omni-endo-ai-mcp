@@ -605,32 +605,29 @@ Then go to **Admin Panel → Settings → Connections** and add your Ollama endp
 
 This connects Open WebUI to the omni-endo MCP server so the AI can call the data tools.
 
-1. Go to **Admin Panel → Settings → Connections**.
-2. Scroll to the **MCP** section and click **+** to add a new connection.
-3. Set the **Type** to **MCP Streamable HTTP** and enter the following:
+1. As before, go from the **Admin Panel** to the **Settings** tab, then click **Integrations**. Click the **+** symbol to the right of **Manage Tool Servers**.
 
-   | Field | Value |
-   |-------|-------|
-   | Name | `omni-endo-ai-mcp` |
-   | URL | `http://omni-endo:3033/mcp` |
-   | Auth | Bearer |
-   | Token | the `OMNI_TOKEN` value from your `.env` file |
+<kbd><img src="docs/images/OpenWebUI7.png" width="900"></kbd>
 
-4. Click **Save**.
+2. An **Add Connection** window pops up. Set the **Type** to **MCP Streamable HTTP**.
 
-When you first open the Add Connection screen, you will see the default placeholder token `change-me-to-a-secret` already filled in the token field:
+<kbd><img src="docs/images/OpenWebUI8.png" width="500"></kbd>
 
-<kbd><img src="docs/images/openwebui-mcp-add.png" width="700"></kbd>
+3. Give it a **Name** (anything) and **ID** (anything), set the **URL** to `http://omni-endo:3033/mcp` (as long as the port has not been changed), and in the **Auth** box (set to **Bearer**) add your token, the same `OMNI_TOKEN` value from your `.env` file. Then click **Save**.
 
-*(Image: the Add Connection screen in Open WebUI showing the default placeholder token.)*
+<kbd><img src="docs/images/OpenWebUI9.png" width="500"></kbd>
 
-Replace it with the `OMNI_TOKEN` value you set in your `.env` file, then save. Once saved, the token will be shown masked:
+4. Go to a chat window and click the **Integrations** button, then switch the **omni-endo-ai-mcp** tool **on**.
 
-<kbd><img src="docs/images/openwebui-mcp-saved.png" width="700"></kbd>
+<kbd><img src="docs/images/OpenWebUI10.png" width="700"></kbd>
 
-*(Image: the saved omni-endo MCP connection with the token masked.)*
+5. Ask your first question. A simple example is *"Tell me about my diabetes data."*
 
-The refresh icon next to the URL can be used to test connectivity at any time.
+<kbd><img src="docs/images/OpenWebUI11.png" width="700"></kbd>
+
+6. Take a look at the output.
+
+<kbd><img src="docs/images/OpenWebUI12.png" width="900"></kbd>
 
 > [!NOTE]
 > Open WebUI's MCP support is experimental and the specification changes periodically. If you encounter connection errors after an Open WebUI update, check the project's issues page for compatibility notes.
@@ -638,7 +635,7 @@ The refresh icon next to the URL can be used to test connectivity at any time.
 ---
 
 ### B5. Chat
-Start a new chat, select your model, make sure the omni-endo tools are enabled for the chat, and ask away. A good first question:
+That's it, you are connected. From here, start a new chat any time, select your model, make sure the **omni-endo-ai-mcp** tool is enabled for the chat (step 4 above), and ask away. A good first question:
 
 > *"Check what date ranges you have in my diabetes data, then give me an overview of how I'm doing."*
 
