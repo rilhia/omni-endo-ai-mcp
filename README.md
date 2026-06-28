@@ -8,6 +8,12 @@
 > [!IMPORTANT]
 > **Not medical advice.** This tool is for understanding your data and helping you ask better questions of your diabetes care team. It is not a medical device and must never be used to make changes to your therapy. See the [full disclaimer](#disclaimer).
 
+> [!TIP]
+> **Allergic to instructions? Let an AI do the talking.** 🤖
+> This README is thorough, but nobody actually *enjoys* reading setup docs. So here's a little experiment: I've written a prompt that turns any decent AI assistant (Claude, ChatGPT, Gemini) into a personal install guide. Paste it in and it'll hold your hand through the whole thing, going as fast or as slow as *you* need, from "what's a terminal?" to "just give me the commands".
+> Grab it here: **[the conversational install prompt](https://github.com/rilhia/omni-endo-ai-mcp/blob/main/docs/installation-prompt.txt)**.
+> It's genuinely a bit of an experiment, and I would **love** to hear how it went for you, what worked, what didn't, where it got confused. Drop me a note (see [Get in Touch](#get-in-touch)). Your feedback makes the next person's install smoother.
+
 ---
 
 ## 📖 Table of Contents
