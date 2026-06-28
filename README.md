@@ -21,7 +21,7 @@
 * [Step 1: Getting Ready (Installing Docker)](#step-1-installing-docker)
 * [Step 2: Getting the Files](#step-2-getting-the-files)
 * [Step 3: Configure Your Settings (`.env`)](#step-3-configure-your-settings)
-* [Ports (if one is already in use)](#ports-and-docker-compose)
+* [Ports (only if one is already in use)](#ports-and-docker-compose)
 * [Step 4: Build the Tool](#step-4-build-the-tool)
 * [Section A: Use it with Claude Desktop](#section-a-claude-desktop)
 * [Section B: Use it with Open WebUI](#section-b-open-webui)
@@ -109,7 +109,7 @@ Because this involves sensitive medical credentials and data, it is designed wit
 > If you use a cloud AI assistant (Claude, Gemini), most providers have a setting that allows them to "train" on your conversations. Before discussing your clinical data, consider turning off chat history / model training in that assistant's privacy settings, so your medical history stays private.
 
 > [!TIP]
-> Want to try it before connecting your own account? This repository ships with a small **example database** of real data so you can explore everything offline, with no Glooko login at all. Follow the "example data" path through Steps 3 and 4 below.
+> Want to try it before connecting your own account? This repository ships with a small **example database** of real data so you can explore everything offline, with no Glooko login at all. Follow the "example data" path through Steps 2 and 3 below.
 
 ---
 
@@ -335,9 +335,10 @@ When your `.env` is ready, the `data` folder you created in [Step 2](#step-2-get
 <a id="ports-and-docker-compose"></a>
 ## 🔌 Ports (only if one is already in use)
 
-The Open WebUI and OpenAPI paths run a small stack of containers, and that stack uses three ports on your machine. These are set in **`docker-compose.yml`**, not in `.env`. You only need to touch them if one of these ports is **already being used by another program** on your computer (you would see an error like "port is already allocated" when starting, or a page simply won't load).
+> [!NOTE]
+> **You can skip this for now.** You do not need to change anything here to get started, the defaults work for almost everyone. This section is here next to the other configuration so it is easy to find. Come back to it **only if**, when you later start the stack (Section B or C), you see an error like "port is already allocated" or a page won't load. If you only use Claude Desktop (Section A), you can ignore ports entirely.
 
-If everything starts and the pages load, **leave this alone**.
+The Open WebUI and OpenAPI paths run a small stack of containers, and that stack uses three ports on your machine. These are set in **`docker-compose.yml`**, not in `.env`. You only need to touch them if one of these ports is **already being used by another program** on your computer.
 
 ### The three ports
 
@@ -348,7 +349,7 @@ If everything starts and the pages load, **leave this alone**.
 | Open WebUI chat interface | `8083` | `http://localhost:8083` |
 
 > [!NOTE]
-> The **Claude Desktop** path (Section A) does not use these ports at all, it talks to its own container directly. So a port clash only ever affects the Open WebUI and OpenAPI paths. If you only use Claude Desktop, you can ignore this section entirely.
+> The **Claude Desktop** path (Section A) does not use these ports at all, it talks to its own container directly. So a port clash only ever affects the Open WebUI and OpenAPI paths.
 
 ### How to change a port
 
@@ -381,12 +382,7 @@ This is the part to be careful about, because a host port appears in more than o
 * **The internal address does *not* change.** The URL you enter inside Open WebUI to reach the tools, `http://omni-endo:3033/mcp`, stays exactly the same even if you remapped the host `3033`. That address uses Docker's internal network (the container port and service name), which the host port does not affect. Do not change it.
 * **If you use the Claude Desktop path, nothing changes there either** — it does not go through these ports.
 
-After editing `docker-compose.yml`, restart the stack so the change takes effect:
-
-```bash
-docker compose down
-docker compose up -d
-```
+If you change a port **after** you have already started the stack, restart it so the change takes effect (`docker compose down` then `docker compose up -d`). If you have not started it yet, there is nothing to restart, your change will simply be used when you first start it in Section B or C.
 
 ---
 
