@@ -489,29 +489,19 @@ Fully quit Claude Desktop (on Mac, Cmd + Q, not just closing the window) and ope
 ### A4. Make sure the tools are loaded
 In a chat, open the connector / tools menu. You should see **omni-endo** with its tools.
 
-<kbd><img src="docs/images/Claude1.png" width="700"></kbd>
-
 > [!IMPORTANT]
 > Claude Desktop has a setting for how it loads tools. If it is set to **"Load tools when needed"**, it may not show the summary and trend tools straight away. For the best experience, set it to **"Tools already loaded"** so every tool is available immediately. This is the single most common setup snag.
 
-<kbd><img src="docs/images/Claude2.png" width="700"></kbd>
+<kbd><img src="docs/images/claude-tool-access.png" width="700"></kbd>
 
 *(Image: the Claude Desktop connector menu showing "Tool access" set to "Tools already loaded".)*
 
 ### A5. Select the persona and ask away
-From the same menu, choose the **"Clinical auditor persona"** prompt, then ask your question. 
+From the same menu, choose the **"Clinical auditor persona"** prompt, then ask your question. A good first one:
 
-<kbd><img src="docs/images/Claude3.png" width="900"></kbd>
+> *"Check what date ranges you have in my diabetes data, then give me an overview of how I'm doing."*
 
-An example using the data I have given you...:
-
-> *"Tell me about my diabetes data."*
-
-<kbd><img src="docs/images/Claude4.png" width="900"></kbd>
-
-Claude pulls the data and gives you it's interpretation. You can then discuss the findings...
-
-<kbd><img src="docs/images/Claude5.png" width="900"></kbd>
+<kbd><img src="docs/images/claude-conversation.png" width="900"></kbd>
 
 *(Image: Claude using the tools to answer a question about your data.)*
 
@@ -557,20 +547,35 @@ You need to connect Open WebUI to an AI backend. Choose one of the options below
 
 **Configure the connection in Open WebUI**
 
-1. Click your profile icon in the bottom-left corner and go to **Admin Panel → Settings → Connections**.
-2. Under the **OpenAI API** section, click **+** to add a new connection and enter:
-   - **API Base URL:** `https://generativelanguage.googleapis.com/v1beta/openai`
-   - **API Key:** paste your Gemini API key
-3. Click **Save**. Open WebUI will verify the connection and pull in the available models.
+1. Click the button in the **top-right** of the screen (your initials) and select **Admin Panel**.
+
+<kbd><img src="docs/images/openwebui-gemini-1-admin-panel.png" width="400"></kbd>
+
+2. Select the **Settings** tab.
+
+<kbd><img src="docs/images/openwebui-gemini-2-settings.png" width="900"></kbd>
+
+3. Select **Connections** on the left, then click the **+** symbol to the right of **OpenAI API**.
+
+<kbd><img src="docs/images/openwebui-gemini-3-connections.png" width="900"></kbd>
+
+4. An **Add Connection** popup appears.
+
+<kbd><img src="docs/images/openwebui-gemini-4-add-connection.png" width="500"></kbd>
+
+5. In the **URL** box enter `https://generativelanguage.googleapis.com/v1beta/openai`, and in the **Auth** section (set to **Bearer**) paste your Gemini API key. Then click **Save**.
+
+<kbd><img src="docs/images/openwebui-gemini-5-url-token.png" width="500"></kbd>
 
 **Select a Gemini model**
 
-1. Go back to the main chat window and click the model dropdown at the top.
-2. Search for `gemini` — do not search for "google". Models are listed by engine name, for example `gemini-2.5-flash` or `gemini-1.5-pro`.
-3. Select your preferred model and start chatting.
+6. Back on the main screen, click the model dropdown at the top and you can now select a **Google Gemini** model to use (search `gemini`, not "google"; models are listed by engine name such as `gemini-2.5-flash`).
+
+<kbd><img src="docs/images/openwebui-gemini-6-select-model.png" width="900"></kbd>
 
 > [!IMPORTANT]
 > If you use Gemini, your glucose and insulin data is sent to Google's servers as part of the conversation. Consider disabling chat history / model training in your Google AI Studio privacy settings before discussing your clinical data.
+
 
 #### Option B: Ollama (local models, nothing leaves your machine)
 
