@@ -28,7 +28,7 @@
 * [Step 2: Getting the Files](#step-2-getting-the-files)
 * [Step 3: Configure Your Settings (`.env`)](#step-3-configure-your-settings)
 * [Ports (only if one is already in use)](#ports-and-docker-compose)
-* [Step 4: Build the Tool](#step-4-build-the-tool)
+* [Step 4: Build and Start the Tool](#step-4-build-the-tool)
 * [Section A: Use it with Claude Desktop](#section-a-claude-desktop)
 * [Section B: Use it with Open WebUI](#section-b-open-webui)
 * [Section C: Use it with the OpenAPI interface](#section-c-openapi)
@@ -396,24 +396,33 @@ If you change a port **after** you have already started the stack, restart it so
 ---
 
 <a id="step-4-build-the-tool"></a>
-## ▶️ Step 4: Build the Tool
-Now we build the Docker image that Claude, Open WebUI and the OpenAPI interface all use.
+## ▶️ Step 4: Build and Start the Tool
+Now we build the Docker image that the tool uses, and start the stack. This one command does both: it builds the local image, downloads the other containers the stack needs, and starts everything.
 
 1. **Open a Terminal:**
    - **Windows:** open "PowerShell" from the Start Menu.
    - **Mac:** open "Terminal" (Cmd + Space, type Terminal).
 2. **Go to the folder:** type `cd` then a space, then drag your project folder into the terminal window so the path fills in, and press Enter. For example:
    `cd /Users/richard/Development/Docker/omni-endo-ai-mcp-main`
-3. **Build it:** run this command and press Enter:
+3. **Build and start it:** run this command and press Enter:
    ```bash
-   docker compose build --no-cache
+   docker compose up -d --build
    ```
-   The first time, Docker downloads what it needs and builds the image; this can take a few minutes.
+   The first time, Docker builds the local image and downloads the other containers, then starts all of them in the background. This can take a few minutes. Subsequent starts are just `docker compose up -d` (no rebuild needed).
+
+To check that everything is running:
+```bash
+docker compose ps
+```
+You should see the containers listed as running (`omni-endo`, `mcpo`, and `open-webui`). You can also watch the logs with `docker compose logs -f omni-endo`.
 
 > [!IMPORTANT]
-> If you ever download a newer version of this tool, always rebuild with `docker compose build --no-cache`. A plain start can reuse an old cached image and run outdated code.
+> If you ever download a newer version of this tool, rebuild and restart with `docker compose up -d --build`. A plain start can reuse an old cached image and run outdated code.
 
-You now have everything built. There are three ways to use it: **Claude Desktop** (Section A), **Open WebUI** (Section B), or the **OpenAPI interface** (Section C). You can use all three or just pick a favourite.
+> [!NOTE]
+> **Claude Desktop users:** the Claude Desktop path (Section A) launches its own container on demand and does not actually need this stack running. Running it does no harm, but if you *only* plan to use Claude Desktop, you can stop the stack again with `docker compose down` after confirming the build worked. The Open WebUI (Section B) and OpenAPI (Section C) paths **do** need the stack running.
+
+You now have everything built and running. There are three ways to use it: **Claude Desktop** (Section A), **Open WebUI** (Section B), or the **OpenAPI interface** (Section C). You can use all three or just pick a favourite.
 
 > [!NOTE]
 > **First query on your own data may be slow.** If you set this up with your own Glooko account (an empty `data` folder), the very first question you ask (or the first call you make in Section C) triggers a download of your history from Glooko before it can answer. This can take from a few seconds to a minute or so depending on how much history you requested. It only happens once; after that your data is stored locally and answers are fast. (If you are using the example data, there is no download and the first query is immediate.)
@@ -525,16 +534,16 @@ This path lets you use either a **local AI model** running on your own machine v
 > [!NOTE]
 > This is the "other LLMs" path. It works, but the tool was tuned for Claude (Section A), so expect the analysis here to be a little less slick, especially with smaller local models. If you have Claude Desktop, that remains the smoothest experience.
 
-### B1. Start the stack
-In your terminal, in the project folder, run:
+### B1. Make sure the stack is running
+If you followed Step 4, the stack is already running and you can skip straight to B2. If you stopped it (or you are returning later), start it again from your terminal, in the project folder:
 ```bash
 docker compose up -d
 ```
-This starts three things: the data server, a bridge (so web tools can reach it), and Open WebUI. The first question you ask may take a little longer while it loads your data.
+This runs three things: the data server, a bridge (so web tools can reach it), and Open WebUI. The first question you ask may take a little longer while it loads your data.
 
 To check it is running:
 ```bash
-docker compose logs omni-endo
+docker compose ps
 ```
 
 ### B2. Create your Open WebUI account
@@ -648,12 +657,11 @@ Every tool is also available as a normal web API, with a built-in interactive pa
 
 You do not need an AI for this path at all — it talks to the data tools directly.
 
-### C1. Start the stack
-The API runs as part of the Docker stack. In your terminal, in the project folder, run:
+### C1. Make sure the stack is running
+The API runs as part of the Docker stack, so if you followed Step 4 (or already started it for Section B) it is already running and you can skip to C2. Otherwise, start it from your terminal, in the project folder:
 ```bash
 docker compose up -d
 ```
-(If you already started it for Section B, it is already running.)
 
 ### C2. Open the interactive API page
 In your browser, go to:
@@ -727,7 +735,7 @@ Replace `YOUR_OMNI_TOKEN` with the token from your `.env`.
 Set Claude's tool loading to **"Tools already loaded"** (Section A4). In "Load tools when needed" mode Claude may not surface the summary/trend tools for a given question.
 
 **Claude seems to be running old behaviour after an update.**
-Rebuild the image: `docker compose build --no-cache`. A cached image can keep running old code.
+Rebuild and restart the image: `docker compose up -d --build`. A cached image can keep running old code.
 
 **"Port already in use".**
 Another app is using a port (3033, 8000, or 8083). See [Ports (only if one is already in use)](#ports-and-docker-compose) for how to change it safely: change only the host (left) number of the mapping in `docker-compose.yml`, restart, and use the new port in your browser. Claude-Desktop-only users are unaffected.
