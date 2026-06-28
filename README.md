@@ -21,6 +21,7 @@
 * [Step 1: Getting Ready (Installing Docker)](#step-1-installing-docker)
 * [Step 2: Getting the Files](#step-2-getting-the-files)
 * [Step 3: Configure Your Settings (`.env`)](#step-3-configure-your-settings)
+* [Ports (if one is already in use)](#ports-and-docker-compose)
 * [Step 4: Build the Tool](#step-4-build-the-tool)
 * [Section A: Use it with Claude Desktop](#section-a-claude-desktop)
 * [Section B: Use it with Open WebUI](#section-b-open-webui)
@@ -309,15 +310,6 @@ OMNI_UPPER=10.0
 #  example database. Set an earlier date to capture more history.
 #  Format: YYYY-MM-DD.
 OMNI_OLDEST_DATE=
-
-# ============================================================================
-#  Advanced (most people never change these)
-# ============================================================================
-#  Ports exposed on your machine. Change only if something else already uses
-#  them. Format is HOST:CONTAINER inside docker-compose.yml.
-#    Data server (MCP/SSE/API):  3033
-#    API explorer + Ollama API:  8000
-#    Open WebUI (chat with Ollama): 8083
 ```
 
 When your `.env` is ready, the `data` folder you created in [Step 2](#step-2-getting-the-files) should contain the example database (`data/omni-endo.db`).
@@ -337,6 +329,64 @@ When your `.env` is ready, the `data` folder you created in [Step 2](#step-2-get
 
 > [!IMPORTANT]
 > `GLOOKO_GLUCOSE_UNIT` (how your data **arrives** from Glooko) and `OMNI_UNITS` (how you want to **see** it) are different settings. They can be the same, but they do not have to be.
+
+---
+
+<a id="ports-and-docker-compose"></a>
+## 🔌 Ports (only if one is already in use)
+
+The Open WebUI and OpenAPI paths run a small stack of containers, and that stack uses three ports on your machine. These are set in **`docker-compose.yml`**, not in `.env`. You only need to touch them if one of these ports is **already being used by another program** on your computer (you would see an error like "port is already allocated" when starting, or a page simply won't load).
+
+If everything starts and the pages load, **leave this alone**.
+
+### The three ports
+
+| Purpose | Default | You open it at |
+|---------|---------|----------------|
+| Data server (MCP / SSE / API) | `3033` | used internally; also reachable at `http://localhost:3033` |
+| API explorer + Ollama API bridge | `8000` | `http://localhost:8000/docs` |
+| Open WebUI chat interface | `8083` | `http://localhost:8083` |
+
+> [!NOTE]
+> The **Claude Desktop** path (Section A) does not use these ports at all, it talks to its own container directly. So a port clash only ever affects the Open WebUI and OpenAPI paths. If you only use Claude Desktop, you can ignore this section entirely.
+
+### How to change a port
+
+In `docker-compose.yml` each port appears as a mapping in the form `"HOST:CONTAINER"`, for example:
+
+```yaml
+ports:
+  - "8083:8080"
+```
+
+The **left** number is the port on *your machine* (the host). The **right** number is the port *inside the container*.
+
+> [!IMPORTANT]
+> **Only ever change the left (host) number. Never change the right (container) number.** The container-side port is referenced by other parts of the stack (for example, the bridge reaches the data server at `http://omni-endo:3033/mcp`, and Open WebUI listens internally on `8080`). Changing a right-hand number will break those internal connections.
+
+So if something else on your machine is already using `8083`, you would change only the host side:
+
+```yaml
+ports:
+  - "8090:8080"      # changed 8083 to 8090; the 8080 stays
+```
+
+Pick any free port you like (adding a few hundred is a safe bet, e.g. `8083` → `8090`, `8000` → `8200`, `3033` → `3133`).
+
+### What changing a host port affects
+
+This is the part to be careful about, because a host port appears in more than one place:
+
+* **The address you type in your browser changes to match.** If you change Open WebUI to `"8090:8080"`, you now open **http://localhost:8090** instead of `http://localhost:8083`. The same applies to `8000` (the OpenAPI page) and `3033`. Anywhere in this README that mentions the old port, mentally substitute your new one.
+* **The internal address does *not* change.** The URL you enter inside Open WebUI to reach the tools, `http://omni-endo:3033/mcp`, stays exactly the same even if you remapped the host `3033`. That address uses Docker's internal network (the container port and service name), which the host port does not affect. Do not change it.
+* **If you use the Claude Desktop path, nothing changes there either** — it does not go through these ports.
+
+After editing `docker-compose.yml`, restart the stack so the change takes effect:
+
+```bash
+docker compose down
+docker compose up -d
+```
 
 ---
 
@@ -374,7 +424,7 @@ If you started with the example data and now want to use your own Glooko account
 ---
 
 <a id="section-a-claude-desktop"></a>
-## 🟩 Section A: Use it with Claude Desktop
+## 💬 Section A: Use it with Claude Desktop
 
 With Claude Desktop, Claude launches its own copy of the tool on demand and reads your data directly. You do **not** need to keep anything running in the terminal for this — Claude starts and stops the container itself.
 
@@ -453,7 +503,7 @@ From the same menu, choose the **"Clinical auditor persona"** prompt, then ask y
 ---
 
 <a id="section-b-open-webui"></a>
-## 🟪 Section B: Use it with Open WebUI
+## 🌐 Section B: Use it with Open WebUI
 
 This path lets you use either a **local AI model** running on your own machine via [Ollama](https://ollama.com), or a **cloud model via Google Gemini**, through a browser-based chat interface. It uses the full Docker stack, which also includes a bridge that turns the tools into a normal web API.
 
@@ -562,7 +612,7 @@ Start a new chat, select your model, make sure the omni-endo tools are enabled f
 ---
 
 <a id="section-c-openapi"></a>
-## 🟧 Section C: Use it with the OpenAPI interface
+## 🔧 Section C: Use it with the OpenAPI interface
 
 Every tool is also available as a normal web API, with a built-in interactive page (Swagger UI) where you can read what each function does, see exactly what it accepts, and run it live in your browser. This is the easiest way to explore the tools by hand, to check what the AI is actually calling on your behalf, or to build your own integration.
 
@@ -642,7 +692,7 @@ Set Claude's tool loading to **"Tools already loaded"** (Section A4). In "Load t
 Rebuild the image: `docker compose build --no-cache`. A cached image can keep running old code.
 
 **"Port already in use".**
-Another app is using a port (3033, 8000, or 8083). Open `docker-compose.yml` and change the first number in the relevant `"XXXX:YYYY"` mapping (e.g. `"8083:8080"` to `"8090:8080"`), then start again and use the new port.
+Another app is using a port (3033, 8000, or 8083). See [Ports (only if one is already in use)](#ports-and-docker-compose) for how to change it safely: change only the host (left) number of the mapping in `docker-compose.yml`, restart, and use the new port in your browser. Claude-Desktop-only users are unaffected.
 
 **Open WebUI can't reach the MCP tools.**
 Check the URL is `http://omni-endo:3033/mcp` (not `localhost`) and that the bearer token matches your `OMNI_TOKEN` exactly.
