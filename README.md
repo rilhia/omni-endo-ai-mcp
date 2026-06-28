@@ -5,10 +5,13 @@
 # OMNI-ENDO AI (MCP)
 **Clinical Audit & Triage Tool: connect your diabetes data directly to an AI assistant**
 
+> [!IMPORTANT]
+> **Not medical advice.** This tool is for understanding your data and helping you ask better questions of your diabetes care team. It is not a medical device and must never be used to make changes to your therapy. See the [full disclaimer](#disclaimer).
+
 ---
 
 ## 📖 Table of Contents
-* [What is Omni-Endo AI?](#what-is-omni-endo-ai)
+* [What is Omni-Endo AI (MCP)?](#what-is-omni-endo-ai)
   * [What does it actually do?](#what-does-it-actually-do)
   * [The "Aha!" Moment](#the-aha-moment)
   * [Why I Built This](#why-i-built-this)
@@ -27,6 +30,7 @@
 * [Get in Touch](#get-in-touch)
 * [API Reference](#api-reference)
 * [How the Code is Organised](#how-the-code-is-organised)
+* [License](#license)
 * [Disclaimer](#disclaimer)
 
 ---
@@ -116,6 +120,8 @@ Managing Type 1 Diabetes is hard, and placating a user doesn't improve Time in R
 
 When you connect the tool, this persona is available as a selectable prompt called **"Clinical auditor persona"**. Selecting it is what turns the AI into the endocrinologist.
 
+Its directness is a deliberate style, not authority. Everything it says is to help you *understand* what is happening and *ask better questions* of your diabetes care team. It does not, and should not, tell you to change settings such as your DIA or carb ratios. Any change to your therapy is a conversation for you and your healthcare professional.
+
 ---
 
 > [!WARNING]
@@ -181,7 +187,7 @@ The tool keeps its database in a folder called `data`, which sits at the same le
    Leave the `data` folder **completely empty**. The tool will download your own data into it from Glooko on the first run. (If you copied the example database in earlier to try it, delete `data/omni-endo.db` now, so your real data is not mixed with mine.)
 
 > [!NOTE]
-> The example data is my own real diabetes data, shared on purpose so people have something genuine to explore. Either way, the data lives in this `data` folder and stays on your machine.
+> The example data is my own real diabetes data, shared on purpose so people have something genuine to explore. Either way, your data lives in this `data` folder and stays on your machine.
 
 ---
 
@@ -229,7 +235,7 @@ This is the easiest way to start, and it never contacts Glooko.
 
 * `GLOOKO_EMAIL` and `GLOOKO_PASSWORD`: **leave both blank.** Blank credentials put the tool in offline mode, so it only ever reads the example database.
 * `GLOOKO_GLUCOSE_UNIT`: set to `mmol`. The example data is mine, and I am British, so it is recorded in mmol/L.
-* `OMNI_TOKEN`: set any hard-to-guess phrase (needed for the Open WebUI path and the OpenAPI web page if you want to use the functions there).
+* `OMNI_TOKEN`: set any hard-to-guess phrase. It is only used by the Open WebUI path (Section B) and the OpenAPI interface (Section C); the Claude Desktop path does not use it. It is simplest to set it anyway so it is ready if you try those paths.
 * The display settings (`OMNI_UNITS`, `OMNI_LOWER`, `OMNI_UPPER`) can be left at their mmol defaults to view it the way I do.
 
 The example `.env` below is ready to use for a test against the provided data. Copy it as-is to use it:
@@ -272,9 +278,11 @@ GLOOKO_PASSWORD=
 #  a Glooko login; ignored in offline mode.
 GLOOKO_GLUCOSE_UNIT=mmol
 
-# --- REQUIRED: a secret token ----------------------------------------------
-#  Any hard-to-guess phrase. It protects the data endpoint so only you (and the
-#  tools on your own machine) can reach it. Change it from the default below.
+# --- A secret token --------------------------------------------------------
+#  Any hard-to-guess phrase. It protects the data endpoint used by Open WebUI
+#  and the OpenAPI interface, so only you (and the tools on your own machine)
+#  can reach it. The Claude Desktop path does not use it, but it is simplest to
+#  set it anyway so it is ready if you try the other paths.
 #  To generate a strong one, run:  openssl rand -hex 16
 OMNI_TOKEN=change-me-to-a-secret
 
@@ -352,10 +360,21 @@ Now we build the Docker image that Claude, Open WebUI and the OpenAPI interface 
 
 You now have everything built. There are three ways to use it: **Claude Desktop** (Section A), **Open WebUI** (Section B), or the **OpenAPI interface** (Section C). You can use all three or just pick a favourite.
 
+> [!NOTE]
+> **First query on your own data may be slow.** If you set this up with your own Glooko account (an empty `data` folder), the very first question you ask (or the first call you make in Section C) triggers a download of your history from Glooko before it can answer. This can take from a few seconds to a minute or so depending on how much history you requested. It only happens once; after that your data is stored locally and answers are fast. (If you are using the example data, there is no download and the first query is immediate.)
+
+### Switching from the example data to your own data later
+If you started with the example data and now want to use your own Glooko account, do this:
+
+1. **Stop the tool.** If you are running the Open WebUI / OpenAPI stack, run `docker compose down` in the project folder. If you only use Claude Desktop, fully quit Claude Desktop.
+2. **Edit `.env`:** add your `GLOOKO_EMAIL` and `GLOOKO_PASSWORD`, and set the other values to match you (see Scenario 2 in Step 3).
+3. **Empty the `data` folder:** delete (or move elsewhere as a backup) `data/omni-endo.db`, so the example data is not mixed with yours.
+4. **Start again:** run `docker compose up -d` (Open WebUI / OpenAPI), or reopen Claude Desktop. On the next query the tool downloads your own history into the now-empty `data` folder.
+
 ---
 
 <a id="section-a-claude-desktop"></a>
-## 🅰️ Section A: Use it with Claude Desktop
+## 💬 Section A: Use it with Claude Desktop
 
 With Claude Desktop, Claude launches its own copy of the tool on demand and reads your data directly. You do **not** need to keep anything running in the terminal for this — Claude starts and stops the container itself.
 
@@ -434,7 +453,7 @@ From the same menu, choose the **"Clinical auditor persona"** prompt, then ask y
 ---
 
 <a id="section-b-open-webui"></a>
-## 🅱️ Section B: Use it with Open WebUI
+## 🌐 Section B: Use it with Open WebUI
 
 This path lets you use either a **local AI model** running on your own machine via [Ollama](https://ollama.com), or a **cloud model via Google Gemini**, through a browser-based chat interface. It uses the full Docker stack, which also includes a bridge that turns the tools into a normal web API.
 
@@ -543,7 +562,7 @@ Start a new chat, select your model, make sure the omni-endo tools are enabled f
 ---
 
 <a id="section-c-openapi"></a>
-## 🅾️ Section C: Use it with the OpenAPI interface
+## 🔧 Section C: Use it with the OpenAPI interface
 
 Every tool is also available as a normal web API, with a built-in interactive page (Swagger UI) where you can read what each function does, see exactly what it accepts, and run it live in your browser. This is the easiest way to explore the tools by hand, to check what the AI is actually calling on your behalf, or to build your own integration.
 
@@ -674,7 +693,13 @@ Authorization: Bearer <your OMNI_TOKEN>
 
 ### A note on timestamps
 
-**All timestamps in this API are UTC ISO 8601**, identified by the trailing `Z`. This applies in both directions: parameters you send must be UTC, and all timestamps returned are UTC.
+**All timestamps in this API are UTC ISO 8601.** A timestamp looks like this:
+
+```
+2026-01-01T00:00:00.000Z
+```
+
+The `T` separates the date (`2026-01-01`) from the time (`00:00:00.000`), and the trailing `Z` means the time is in UTC. This applies in both directions: the timestamps you send must be UTC, and all timestamps the API returns are UTC.
 
 If you are calling the API directly, convert your local times to UTC before sending them. For example, 9pm BST (UTC+1) is `2026-06-27T20:00:00.000Z`.
 
@@ -694,7 +719,7 @@ All endpoints use `POST`. The request body is JSON.
 
 The best starting point for any overview question. Returns fixed-size aggregates over any window, no matter how long, so it is cheap to call across months or years.
 
-**Tip:** call it with `start: "2000-01-01T00:00:00.000Z"` and `end` set to tomorrow to discover the full date range held in the database — the returned `reportRange.start` and `reportRange.end` are the first and last readings actually present.
+**Tip:** call it with a very wide window, for example `start` of `2000-01-01T00:00:00.000Z` and an `end` far in the future such as `2030-01-01T00:00:00.000Z`, to discover the full date range held in the database — the returned `reportRange.start` and `reportRange.end` are the first and last readings actually present.
 
 **Parameters**
 
@@ -952,6 +977,15 @@ The data flows: Glooko → sync → store → range → analytics → tools → 
 * **`src/prompt.js`** — the clinical-auditor persona.
 
 A few invariants hold throughout: glucose is stored internally in one canonical unit (mmol/L) and only converted on output; bolus is summed from individual events while basal comes from Glooko's daily totals; all times are UTC; and per-day rates use the real observed span of data.
+
+---
+
+<a id="license"></a>
+## 📄 License
+
+This project is released under the **MIT License** — you are free to use, modify, and distribute it, including for commercial purposes, provided the copyright notice and licence text are retained. See the [LICENSE](LICENSE) file for the full text.
+
+The MIT licence covers the **code**. The example database is the author's own data, shared for exploration; please be considerate in how you use it.
 
 ---
 
