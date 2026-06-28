@@ -141,7 +141,7 @@ Adapt the depth, but keep this sequence. It mirrors the official guide.
    their chosen data source.
 5. **(Ports — usually skip.)** Only relevant if a port turns out to be in use
    later. Do NOT make them do anything here up front.
-6. **Build the Docker image.**
+6. **Build and start the Docker stack** (one command: `docker compose up -d --build`).
 7. **Connect their chosen interface** (Section A, B, and/or C).
 8. **Ask the first question** — and celebrate that it worked.
 
@@ -237,18 +237,31 @@ a page won't load. Do not have them change ports pre-emptively.
   the stack was already running, restart it (`docker compose down` then
   `docker compose up -d`); if not yet started, nothing to restart.
 
-### Step 6 — Build the Docker image
-- In a terminal, in the project folder:
-  `docker compose build --no-cache`
-- First build downloads things and can take a few minutes.
-- If they ever update the project later, rebuild the same way — a plain start can
-  reuse an old cached image and run outdated code.
+### Step 6 — Build and start the Docker stack
+- In a terminal, in the project folder, the **one** first-time command is:
+  `docker compose up -d --build`
+- This is important: it builds the local image AND downloads the other containers
+  the stack needs AND starts all of them. A plain `docker compose build` only
+  builds the local image — it does not pull or start the other containers, which
+  leaves the stack not actually running. Always use `up -d --build` the first
+  time (and after any update).
+- The first run can take a few minutes while it builds and downloads. Subsequent
+  starts are just `docker compose up -d` (no rebuild needed).
+- To check everything is up, they can run `docker compose ps` and look for the
+  containers running (`omni-endo`, `mcpo`, `open-webui`).
+- **Claude Desktop note:** the Claude Desktop path (Section A) launches its own
+  container on demand and does not strictly need this stack running. Running it
+  does no harm. The Open WebUI (B) and OpenAPI (C) paths DO need the stack
+  running.
 
 ### Run / stop commands (in the project folder)
-- Start the stack (needed for Sections B and C): `docker compose up -d`
+- First time (build + download + start): `docker compose up -d --build`
+- Start the stack afterwards (needed for Sections B and C): `docker compose up -d`
+- Rebuild and restart after an update: `docker compose up -d --build`
 - Stop the stack: `docker compose down`
-- Check it is running: `docker compose logs omni-endo`
-- The **Claude Desktop path does NOT need `docker compose up`** — Claude launches
+- Check it is running: `docker compose ps` (or watch logs with
+  `docker compose logs -f omni-endo`)
+- The **Claude Desktop path does NOT need the stack running** — Claude launches
   its own container and stops it when done.
 
 ### Section A — Claude Desktop
@@ -303,8 +316,9 @@ a page won't load. Do not have them change ports pre-emptively.
   its interpretation, which they can then discuss.
 
 ### Section B — Open WebUI
-- Start the stack: `docker compose up -d`. Open **http://localhost:8083** and
-  create a local account (first account becomes admin; it stays on their machine).
+- Make sure the stack is running (it already is if they did Step 6; otherwise
+  `docker compose up -d`). Open **http://localhost:8083** and create a local
+  account (first account becomes admin; it stays on their machine).
 - They need an AI backend — one of:
   - **Google Gemini (cloud, free tier):** get a key at
     https://aistudio.google.com/ (Get API Key → Create API key). In Open WebUI:
@@ -333,7 +347,8 @@ a page won't load. Do not have them change ports pre-emptively.
   equivalent rather than you inventing one.
 
 ### Section C — OpenAPI interface (no AI needed)
-- Start the stack: `docker compose up -d`. Open **http://localhost:8000/docs** .
+- Make sure the stack is running (it already is if they did Step 6; otherwise
+  `docker compose up -d`). Open **http://localhost:8000/docs** .
 - Click **Authorize**, paste their `OMNI_TOKEN`, Authorize, Close.
 - Expand a function, click **"Try it out"**, fill the request body, **Execute**.
   Good first call is `get_diabetes_summary` with a wide window:
@@ -350,8 +365,8 @@ a page won't load. Do not have them change ports pre-emptively.
 
 ### Common problems and fixes
 - **Only some tools show in Claude:** set "Tools already loaded" (Section A).
-- **Claude acting on old behaviour after an update:** rebuild with
-  `docker compose build --no-cache`.
+- **Claude acting on old behaviour after an update:** rebuild and restart with
+  `docker compose up -d --build`.
 - **"Port already in use" / a page won't load:** follow the Ports section —
   change only the HOST (left) number in `docker-compose.yml`, restart with
   `docker compose down` then `up -d`, and use the new host port in the browser.
