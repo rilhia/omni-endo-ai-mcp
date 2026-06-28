@@ -665,16 +665,22 @@ You will see every tool listed, each with a description and a **"Try it out"** b
 ### C3. Authorise with your token
 The functions are protected by your secret token, so you authorise once before using them.
 
-1. Click the **Authorize** button near the top of the page.
-2. Paste the `OMNI_TOKEN` value from your `.env` file.
-3. Click **Authorize**, then **Close**.
+1. Open the **http://localhost:8000/docs** URL in your browser.
+
+<kbd><img src="docs/images/openAPI1.png" width="900"></kbd>
+
+2. Click the **Authorize** button, add your token (the same `OMNI_TOKEN` value from your `.env` file), and click **Authorize**.
+
+<kbd><img src="docs/images/openAPI2.png" width="600"></kbd>
 
 You can now run any function on the page.
 
 ### C4. Try a function
 A good first one is **`get_diabetes_summary`**, which gives an overview and also tells you the date range the database holds.
 
-1. Click on **`get_diabetes_summary`** to expand it.
+<kbd><img src="docs/images/openAPI3.png" width="900"></kbd>
+
+1. Click on **`get_diabetes_summary`** to expand it (shown above).
 2. Click **"Try it out"**.
 3. In the request body, enter a wide window so you can see everything held, for example:
    ```json
@@ -684,6 +690,8 @@ A good first one is **`get_diabetes_summary`**, which gives an overview and also
    }
    ```
 4. Click **Execute**. The response appears below, including a `reportRange` showing the first and last data the database actually holds.
+
+<kbd><img src="docs/images/openAPI4.png" width="900"></kbd>
 
 > [!NOTE]
 > All times in the API are **UTC** (the trailing `Z`). Send UTC, and expect UTC back. See the [API Reference](#api-reference) at the end of this document for every endpoint, its parameters, and what it returns.
