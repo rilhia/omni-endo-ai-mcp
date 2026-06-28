@@ -549,29 +549,29 @@ You need to connect Open WebUI to an AI backend. Choose one of the options below
 
 1. Click the button in the **top-right** of the screen (your initials) and select **Admin Panel**.
 
-<kbd><img src="docs/images/openwebui-gemini-1-admin-panel.png" width="400"></kbd>
+<kbd><img src="docs/images/OpenWebUI1.png" width="400"></kbd>
 
 2. Select the **Settings** tab.
 
-<kbd><img src="docs/images/openwebui-gemini-2-settings.png" width="900"></kbd>
+<kbd><img src="docs/images/OpenWebUI2.png" width="900"></kbd>
 
 3. Select **Connections** on the left, then click the **+** symbol to the right of **OpenAI API**.
 
-<kbd><img src="docs/images/openwebui-gemini-3-connections.png" width="900"></kbd>
+<kbd><img src="docs/images/OpenWebUI3.png" width="900"></kbd>
 
 4. An **Add Connection** popup appears.
 
-<kbd><img src="docs/images/openwebui-gemini-4-add-connection.png" width="500"></kbd>
+<kbd><img src="docs/images/OpenWebUI4.png" width="500"></kbd>
 
 5. In the **URL** box enter `https://generativelanguage.googleapis.com/v1beta/openai`, and in the **Auth** section (set to **Bearer**) paste your Gemini API key. Then click **Save**.
 
-<kbd><img src="docs/images/openwebui-gemini-5-url-token.png" width="500"></kbd>
+<kbd><img src="docs/images/OpenWebUI5.png" width="500"></kbd>
 
 **Select a Gemini model**
 
 6. Back on the main screen, click the model dropdown at the top and you can now select a **Google Gemini** model to use (search `gemini`, not "google"; models are listed by engine name such as `gemini-2.5-flash`).
 
-<kbd><img src="docs/images/openwebui-gemini-6-select-model.png" width="900"></kbd>
+<kbd><img src="docs/images/OpenWebUI6.png" width="900"></kbd>
 
 > [!IMPORTANT]
 > If you use Gemini, your glucose and insulin data is sent to Google's servers as part of the conversation. Consider disabling chat history / model training in your Google AI Studio privacy settings before discussing your clinical data.
