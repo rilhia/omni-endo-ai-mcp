@@ -374,7 +374,7 @@ If you started with the example data and now want to use your own Glooko account
 ---
 
 <a id="section-a-claude-desktop"></a>
-## 💬 Section A: Use it with Claude Desktop
+## 🟩 Section A: Use it with Claude Desktop
 
 With Claude Desktop, Claude launches its own copy of the tool on demand and reads your data directly. You do **not** need to keep anything running in the terminal for this — Claude starts and stops the container itself.
 
@@ -453,7 +453,7 @@ From the same menu, choose the **"Clinical auditor persona"** prompt, then ask y
 ---
 
 <a id="section-b-open-webui"></a>
-## 🌐 Section B: Use it with Open WebUI
+## 🟪 Section B: Use it with Open WebUI
 
 This path lets you use either a **local AI model** running on your own machine via [Ollama](https://ollama.com), or a **cloud model via Google Gemini**, through a browser-based chat interface. It uses the full Docker stack, which also includes a bridge that turns the tools into a normal web API.
 
@@ -562,7 +562,7 @@ Start a new chat, select your model, make sure the omni-endo tools are enabled f
 ---
 
 <a id="section-c-openapi"></a>
-## 🔧 Section C: Use it with the OpenAPI interface
+## 🟧 Section C: Use it with the OpenAPI interface
 
 Every tool is also available as a normal web API, with a built-in interactive page (Swagger UI) where you can read what each function does, see exactly what it accepts, and run it live in your browser. This is the easiest way to explore the tools by hand, to check what the AI is actually calling on your behalf, or to build your own integration.
 
