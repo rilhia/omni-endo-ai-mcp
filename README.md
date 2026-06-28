@@ -48,6 +48,9 @@
 
 With this version you simply *talk* to your assistant. You ask a question in plain language, and the assistant reaches into your data, pulls exactly what it needs, and analyses it for you, all within the conversation.
 
+> [!NOTE]
+> **Built for Claude first.** This was designed and tuned for **Claude Desktop** (Section A), and that is where it works best, fully featured and the most reliable. I have since added the option to run it with **other LLMs through Open WebUI** (Section B): that path works, but it is not as polished, so treat it as "good, not perfect". A happy side effect of wiring up Open WebUI is that the tools also became available as a plain web API, so you can poke around your data directly through the **OpenAPI interface** (Section C) with no AI at all. In short: Claude for the best experience; Open WebUI if you would rather use another model; OpenAPI if you just want to explore the raw functions.
+
 You ask things like:
 * *"How was my time in range last month?"*
 * *"Why do I keep going high in the evenings?"*
@@ -508,6 +511,9 @@ From the same menu, choose the **"Clinical auditor persona"** prompt, then ask y
 ## 🌐 Section B: Use it with Open WebUI
 
 This path lets you use either a **local AI model** running on your own machine via [Ollama](https://ollama.com), or a **cloud model via Google Gemini**, through a browser-based chat interface. It uses the full Docker stack, which also includes a bridge that turns the tools into a normal web API.
+
+> [!NOTE]
+> This is the "other LLMs" path. It works, but the tool was tuned for Claude (Section A), so expect the analysis here to be a little less slick, especially with smaller local models. If you have Claude Desktop, that remains the smoothest experience.
 
 ### B1. Start the stack
 In your terminal, in the project folder, run:
