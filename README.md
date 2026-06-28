@@ -489,19 +489,29 @@ Fully quit Claude Desktop (on Mac, Cmd + Q, not just closing the window) and ope
 ### A4. Make sure the tools are loaded
 In a chat, open the connector / tools menu. You should see **omni-endo** with its tools.
 
+<kbd><img src="docs/images/Claude1.png" width="700"></kbd>
+
 > [!IMPORTANT]
 > Claude Desktop has a setting for how it loads tools. If it is set to **"Load tools when needed"**, it may not show the summary and trend tools straight away. For the best experience, set it to **"Tools already loaded"** so every tool is available immediately. This is the single most common setup snag.
 
-<kbd><img src="docs/images/claude-tool-access.png" width="700"></kbd>
+<kbd><img src="docs/images/Claude2.png" width="700"></kbd>
 
 *(Image: the Claude Desktop connector menu showing "Tool access" set to "Tools already loaded".)*
 
 ### A5. Select the persona and ask away
-From the same menu, choose the **"Clinical auditor persona"** prompt, then ask your question. A good first one:
+From the same menu, choose the **"Clinical auditor persona"** prompt, then ask your question. 
 
-> *"Check what date ranges you have in my diabetes data, then give me an overview of how I'm doing."*
+<kbd><img src="docs/images/Claude3.png" width="900"></kbd>
 
-<kbd><img src="docs/images/claude-conversation.png" width="900"></kbd>
+An example using the data I have given you...:
+
+> *"Tell me about my diabetes data."*
+
+<kbd><img src="docs/images/Claude4.png" width="900"></kbd>
+
+Claude pulls the data and gives you it's interpretation. You can then discuss the findings...
+
+<kbd><img src="docs/images/Claude5.png" width="900"></kbd>
 
 *(Image: Claude using the tools to answer a question about your data.)*
 
